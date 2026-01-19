@@ -289,7 +289,22 @@
             border-bottom: none;
         }
 
+        /* Print styles */
+        @media print {
+            h1, h2, h3 {
+                font-size: 80%;
+            }
+        }
+
     </style>
+
+    <!-- Estilos para impressão -->
+    <style media="print">
+        h1, h2, h3 {
+            font-size: 98% !important;
+        }
+    </style>
+
     <!-- CDN para PapaParse e FileSaver -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -303,8 +318,9 @@
     <nav id="nav-menu">
         <ul>
             <li><a href="#" onclick="showPage('home')">Home</a></li>
-            <li><a href="#" onclick="toggleDarkMode()">Modo Claro/Escuro</a></li>
+            <li><a href="#" onclick="showPage('relatorio')">Relatório</a></li>
             <li><a href="#" onclick="showPage('candidatos')">Candidatos</a></li>
+            <li><a href="#" onclick="toggleDarkMode()">Modo Claro/Escuro</a></li>
         </ul>
     </nav>
     <h1>Sistema de Verificação de Documentos - RH</h1>
@@ -315,9 +331,6 @@
             <h2>Cadastrar Candidato</h2>
             <label for="nome">Nome do Candidato (obrigatório):</label>
             <input type="text" id="nome" required>
-
-            <label for="email">E-mail (opcional):</label>
-            <input type="email" id="email">
 
             <div style="margin-bottom: 10px; display: flex; justify-content: space-around;">
                 <div style="text-align: center;">
@@ -348,6 +361,11 @@
                 <div class="document-item"><input type="checkbox" id="cpf_filhos"><label for="cpf_filhos">CPF dos Filhos</label></div>
                 <div class="document-item"><input type="checkbox" id="certidao_nascimento_filhos"><label for="certidao_nascimento_filhos">Certidão de Nascimento dos Filhos</label></div>
                 <div class="document-item"><input type="checkbox" id="cartao_vacina_filhos"><label for="cartao_vacina_filhos">Cartão de Vacina dos Filhos</label></div>
+                <div class="document-item"><input type="checkbox" id="carteira_vacina"><label for="carteira_vacina">Carteira de Vacina</label></div>
+                <div class="document-item"><input type="checkbox" id="cns"><label for="cns">CNS</label></div>
+                <div class="document-item"><input type="checkbox" id="pis_ou_nis_ou_nit"><label for="pis_ou_nis_ou_nit">PIS ou NIS ou NIT</label></div>
+                <div class="document-item"><input type="checkbox" id="extrato_bancario"><label for="extrato_bancario">Extrato Bancário</label></div>
+                <div class="document-item"><input type="checkbox" id="quitacao_eleitoral"><label for="quitacao_eleitoral">Quitação Eleitoral</label></div>
             </div>
             <div class="add-document">
                 <input type="text" id="novo-documento" placeholder="Nome do documento adicional">
@@ -365,7 +383,6 @@
             <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>E-mail</th>
                     <th>Status Documentos</th>
                     <th>Ações</th>
                 </tr>
@@ -408,6 +425,44 @@
         </div>
     </div>
 
+    <div class="page page-relatorio">
+        <h2>Relatório de Candidatos</h2>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Imprimir Relatório</button>
+        </div>
+        <div class="candidatos-section">
+            <h3>Candidatos com Documentação Completa</h3>
+            <table id="tabela-completos-relatorio">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Gênero</th>
+                        <th>Tem Filhos</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-completos-relatorio">
+                    <!-- Candidatos completos -->
+                </tbody>
+            </table>
+        </div>
+        <div class="candidatos-section">
+            <h3>Candidatos com Documentação Incompleta</h3>
+            <table id="tabela-incompletos-relatorio">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Gênero</th>
+                        <th>Tem Filhos</th>
+                        <th>Documentos Faltantes</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-incompletos-relatorio">
+                    <!-- Candidatos incompletos -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
         // JavaScript para funcionalidades
 
@@ -415,7 +470,7 @@
         let candidatos = JSON.parse(localStorage.getItem('candidatos')) || [];
 
         // Lista de documentos fixos
-        const documentosFixos = ['entrevista_online', 'curriculo', 'rg', 'ctps', 'comprovante_situacao_cadastral_cpf', 'certidao_nascimento_casamento', 'historico_escolar', 'comprovante_residencia', 'certificado_alistamento', 'cpf_filhos', 'certidao_nascimento_filhos', 'cartao_vacina_filhos'];
+        const documentosFixos = ['entrevista_online', 'curriculo', 'rg', 'ctps', 'comprovante_situacao_cadastral_cpf', 'certidao_nascimento_casamento', 'historico_escolar', 'comprovante_residencia', 'certificado_alistamento', 'cpf_filhos', 'certidao_nascimento_filhos', 'cartao_vacina_filhos', 'carteira_vacina', 'cns', 'pis_ou_nis_ou_nit', 'extrato_bancario', 'quitacao_eleitoral'];
 
         // Carregar documentos adicionais
         let documentosAdicionais = JSON.parse(localStorage.getItem('documentos-adicionais')) || [];
@@ -423,9 +478,9 @@
         // Função para tornar document-item clicável
         function makeDocumentItemClickable(item) {
             item.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'BUTTON') {
+                if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
                     const checkbox = item.querySelector('input[type="checkbox"]');
-                    checkbox.checked = !checkbox.checked;
+                    checkbox.checked = true;
                 }
             });
         }
@@ -515,7 +570,6 @@
 
                 linha.innerHTML = `
                     <td>${candidato.nome}</td>
-                    <td>${candidato.email || 'N/A'}</td>
                     <td class="${completo ? 'completo' : 'incompleto'}">
                         ${completo ? 'Completo' : 'Faltam: ' + documentosFaltantes.join(', ')}
                     </td>
@@ -532,7 +586,6 @@
         document.getElementById('form-candidato').addEventListener('submit', function(e) {
             e.preventDefault();
             const nome = document.getElementById('nome').value;
-            const email = document.getElementById('email').value;
             const genero = document.querySelector('input[name="genero"]:checked').value;
             const temFilhos = document.getElementById('tem-filhos').checked;
             const documentos = {};
@@ -541,7 +594,7 @@
                 documentos[cb.id] = cb.checked;
             });
 
-            candidatos.push({ nome, email, genero, temFilhos, documentos });
+            candidatos.push({ nome, genero, temFilhos, documentos });
             localStorage.setItem('candidatos', JSON.stringify(candidatos));
             renderizarTabela();
             this.reset();
@@ -552,7 +605,6 @@
         function editarCandidato(index) {
             const candidato = candidatos[index];
             document.getElementById('nome').value = candidato.nome;
-            document.getElementById('email').value = candidato.email || '';
             document.getElementById(`genero-${candidato.genero || 'masculino'}`).checked = true;
             document.getElementById('tem-filhos').checked = candidato.temFilhos || false;
 
@@ -604,7 +656,7 @@
             const allDocs = new Set();
             candidatos.forEach(c => Object.keys(c.documentos).forEach(doc => allDocs.add(doc)));
             const csvData = candidatos.map(c => {
-                const row = { Nome: c.nome, Email: c.email || '' };
+                const row = { Nome: c.nome };
                 allDocs.forEach(doc => {
                     row[doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())] = c.documentos[doc] ? 'Sim' : 'Não';
                 });
@@ -695,6 +747,11 @@
                     <div class="document-item"><input type="checkbox" id="cpf_filhos"><label for="cpf_filhos">CPF dos Filhos</label></div>
                     <div class="document-item"><input type="checkbox" id="certidao_nascimento_filhos"><label for="certidao_nascimento_filhos">Certidão de Nascimento dos Filhos</label></div>
                     <div class="document-item"><input type="checkbox" id="cartao_vacina_filhos"><label for="cartao_vacina_filhos">Cartão de Vacina dos Filhos</label></div>
+                    <div class="document-item"><input type="checkbox" id="carteira_vacina"><label for="carteira_vacina">Carteira de Vacina</label></div>
+                    <div class="document-item"><input type="checkbox" id="cns"><label for="cns">CNS</label></div>
+                    <div class="document-item"><input type="checkbox" id="pis_ou_nis_ou_nit"><label for="pis_ou_nis_ou_nit">PIS ou NIS ou NIT</label></div>
+                    <div class="document-item"><input type="checkbox" id="extrato_bancario"><label for="extrato_bancario">Extrato Bancário</label></div>
+                    <div class="document-item"><input type="checkbox" id="quitacao_eleitoral"><label for="quitacao_eleitoral">Quitação Eleitoral</label></div>
                 `;
                 document.getElementById('novo-documento').value = '';
             }
@@ -726,6 +783,8 @@
             toggleMenu(); // Fechar menu
             if (page === 'candidatos') {
                 renderCandidatos();
+            } else if (page === 'relatorio') {
+                renderRelatorios();
             }
         }
 
@@ -764,7 +823,7 @@
                 const item = document.createElement('div');
                 item.className = 'candidato-item';
                 item.innerHTML = `
-                    <span>${candidato.nome} - ${candidato.email || 'N/A'}</span>
+                    <span>${candidato.nome}</span>
                     <span class="${completo ? 'completo' : 'incompleto'}">
                         ${completo ? 'Completo' : 'Faltam: ' + documentosFaltantes.join(', ')}
                     </span>
@@ -779,9 +838,53 @@
         }
 
         // Evento de pesquisa
-        document.getElementById('pesquisa').addEventListener('keyup', function() {
-            renderCandidatos(this.value);
+        document.getElementById('pesquisa').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                renderCandidatos(this.value);
+            }
         });
+
+        // Função para renderizar relatórios
+        function renderRelatorios() {
+            const completosCorpo = document.getElementById('corpo-completos-relatorio');
+            const incompletosCorpo = document.getElementById('corpo-incompletos-relatorio');
+            completosCorpo.innerHTML = '';
+            incompletosCorpo.innerHTML = '';
+
+            candidatos.forEach(candidato => {
+                const documentosFaltantes = [];
+                let completo = true;
+                Object.keys(candidato.documentos).forEach(doc => {
+                    if (!candidato.documentos[doc]) {
+                        // Skip children's documents if no children
+                        if (!(candidato.temFilhos || false) && ['cpf_filhos', 'certidao_nascimento_filhos', 'cartao_vacina_filhos'].includes(doc)) return;
+                        // Skip enlistment certificate for women
+                        if ((candidato.genero || 'masculino') === 'feminino' && doc === 'certificado_alistamento') return;
+                        completo = false;
+                        documentosFaltantes.push(doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+                    }
+                });
+
+                const linha = document.createElement('tr');
+
+                if (completo) {
+                    linha.innerHTML = `
+                        <td>${candidato.nome}</td>
+                        <td>${candidato.genero === 'masculino' ? 'Masculino' : 'Feminino'}</td>
+                        <td>${candidato.temFilhos ? 'Sim' : 'Não'}</td>
+                    `;
+                    completosCorpo.appendChild(linha);
+                } else {
+                    linha.innerHTML = `
+                        <td>${candidato.nome}</td>
+                        <td>${candidato.genero === 'masculino' ? 'Masculino' : 'Feminino'}</td>
+                        <td>${candidato.temFilhos ? 'Sim' : 'Não'}</td>
+                        <td>${documentosFaltantes.join(', ')}</td>
+                    `;
+                    incompletosCorpo.appendChild(linha);
+                }
+            });
+        }
     </script>
 </body>
 </html>
