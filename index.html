@@ -288,10 +288,7 @@
         .candidato-item:last-child {
             border-bottom: none;
         }
-        #pesquisa {
-            width: 100%;
-            margin-bottom: 20px;
-        }
+
     </style>
     <!-- CDN para PapaParse e FileSaver -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -322,13 +319,35 @@
             <label for="email">E-mail (opcional):</label>
             <input type="email" id="email">
 
+            <div style="margin-bottom: 10px; display: flex; justify-content: space-around;">
+                <div style="text-align: center;">
+                    <label for="genero-masculino">Masculino</label><br>
+                    <input type="radio" id="genero-masculino" name="genero" value="masculino" checked>
+                </div>
+                <div style="text-align: center;">
+                    <label for="genero-feminino">Feminino</label><br>
+                    <input type="radio" id="genero-feminino" name="genero" value="feminino">
+                </div>
+                <div style="text-align: center;">
+                    <label for="tem-filhos">Tem filhos?</label><br>
+                    <input type="checkbox" id="tem-filhos">
+                </div>
+            </div>
+
             <label>Checklist de Documentos:</label>
             <div id="checklist-documentos" class="checklist-container">
-                <div class="document-item"><input type="checkbox" id="cpf"><label for="cpf">CPF</label></div>
-                <div class="document-item"><input type="checkbox" id="rg"><label for="rg">RG</label></div>
+                <div class="document-item"><input type="checkbox" id="entrevista_online"><label for="entrevista_online">Entrevista Online</label></div>
                 <div class="document-item"><input type="checkbox" id="curriculo"><label for="curriculo">Currículo</label></div>
-                <div class="document-item"><input type="checkbox" id="endereco"><label for="endereco">Comprovante de Endereço</label></div>
-                <div class="document-item"><input type="checkbox" id="certificados"><label for="certificados">Certificados</label></div>
+                <div class="document-item"><input type="checkbox" id="rg"><label for="rg">RG</label></div>
+                <div class="document-item"><input type="checkbox" id="ctps"><label for="ctps">CTPS</label></div>
+                <div class="document-item"><input type="checkbox" id="comprovante_situacao_cadastral_cpf"><label for="comprovante_situacao_cadastral_cpf">Comprovante de Situação Cadastral CPF</label></div>
+                <div class="document-item"><input type="checkbox" id="certidao_nascimento_casamento"><label for="certidao_nascimento_casamento">Certidão de Nascimento ou Casamento</label></div>
+                <div class="document-item"><input type="checkbox" id="historico_escolar"><label for="historico_escolar">Histórico Escolar</label></div>
+                <div class="document-item"><input type="checkbox" id="comprovante_residencia"><label for="comprovante_residencia">Comprovante de Residência</label></div>
+                <div class="document-item"><input type="checkbox" id="certificado_alistamento"><label for="certificado_alistamento">Certificado de Alistamento</label></div>
+                <div class="document-item"><input type="checkbox" id="cpf_filhos"><label for="cpf_filhos">CPF dos Filhos</label></div>
+                <div class="document-item"><input type="checkbox" id="certidao_nascimento_filhos"><label for="certidao_nascimento_filhos">Certidão de Nascimento dos Filhos</label></div>
+                <div class="document-item"><input type="checkbox" id="cartao_vacina_filhos"><label for="cartao_vacina_filhos">Cartão de Vacina dos Filhos</label></div>
             </div>
             <div class="add-document">
                 <input type="text" id="novo-documento" placeholder="Nome do documento adicional">
@@ -366,12 +385,15 @@
             <button id="btn-importar">Importar JSON</button>
         </div>
         <div class="apagar-tudo" style="text-align: center; margin-top: 20px;">
-            <button id="btn-apagar-tudo" style="background-color: red; color: white;">Apagar Tudo</button>
+            <button type="button" id="btn-apagar-tudo" style="background-color: red; color: white;" onclick="apagarTudo()">Apagar Tudo</button>
         </div>
     </div>
 
     <div class="page page-candidatos">
-        <input type="text" id="pesquisa" placeholder="Pesquisar por nome...">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="pesquisa" placeholder="Pesquisar por nome..." style="flex: 1;">
+            <button type="button" onclick="renderCandidatos(document.getElementById('pesquisa').value)" style="flex: 1;">Pesquisar</button>
+        </div>
         <div class="candidatos-section">
             <h3>Candidatos com Documentação Completa</h3>
             <div class="candidatos-list" id="lista-completos">
@@ -393,10 +415,20 @@
         let candidatos = JSON.parse(localStorage.getItem('candidatos')) || [];
 
         // Lista de documentos fixos
-        const documentosFixos = ['cpf', 'rg', 'curriculo', 'endereco', 'certificados'];
+        const documentosFixos = ['entrevista_online', 'curriculo', 'rg', 'ctps', 'comprovante_situacao_cadastral_cpf', 'certidao_nascimento_casamento', 'historico_escolar', 'comprovante_residencia', 'certificado_alistamento', 'cpf_filhos', 'certidao_nascimento_filhos', 'cartao_vacina_filhos'];
 
         // Carregar documentos adicionais
         let documentosAdicionais = JSON.parse(localStorage.getItem('documentos-adicionais')) || [];
+
+        // Função para tornar document-item clicável
+        function makeDocumentItemClickable(item) {
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'BUTTON') {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+            });
+        }
 
         // Adicionar documentos adicionais ao checklist inicial
         documentosAdicionais.forEach(doc => {
@@ -420,8 +452,12 @@
             div.appendChild(checkbox);
             div.appendChild(label);
             div.appendChild(deleteBtn);
+            makeDocumentItemClickable(div);
             document.getElementById('checklist-documentos').appendChild(div);
         });
+
+        // Tornar os document-items iniciais clicáveis
+        document.querySelectorAll('.document-item').forEach(makeDocumentItemClickable);
 
         // Função para adicionar documento dinâmico
         document.getElementById('adicionar-documento').addEventListener('click', function() {
@@ -465,8 +501,12 @@
                 let completo = true;
                 Object.keys(candidato.documentos).forEach(doc => {
                     if (!candidato.documentos[doc]) {
+                        // Skip children's documents if no children
+                        if (!(candidato.temFilhos || false) && ['cpf_filhos', 'certidao_nascimento_filhos', 'cartao_vacina_filhos'].includes(doc)) return;
+                        // Skip enlistment certificate for women
+                        if ((candidato.genero || 'masculino') === 'feminino' && doc === 'certificado_alistamento') return;
                         completo = false;
-                        documentosFaltantes.push(documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' '));
+                        documentosFaltantes.push(doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
                     }
                 });
 
@@ -493,16 +533,19 @@
             e.preventDefault();
             const nome = document.getElementById('nome').value;
             const email = document.getElementById('email').value;
+            const genero = document.querySelector('input[name="genero"]:checked').value;
+            const temFilhos = document.getElementById('tem-filhos').checked;
             const documentos = {};
             const checkboxes = document.querySelectorAll('#checklist-documentos input[type="checkbox"]');
             checkboxes.forEach(cb => {
                 documentos[cb.id] = cb.checked;
             });
 
-            candidatos.push({ nome, email, documentos });
+            candidatos.push({ nome, email, genero, temFilhos, documentos });
             localStorage.setItem('candidatos', JSON.stringify(candidatos));
             renderizarTabela();
             this.reset();
+            document.getElementById('tem-filhos').checked = false; // Reset the checkbox
         });
 
         // Função para editar candidato
@@ -510,6 +553,8 @@
             const candidato = candidatos[index];
             document.getElementById('nome').value = candidato.nome;
             document.getElementById('email').value = candidato.email || '';
+            document.getElementById(`genero-${candidato.genero || 'masculino'}`).checked = true;
+            document.getElementById('tem-filhos').checked = candidato.temFilhos || false;
 
             // Limpar checklist e recriar com documentos do candidato
             const checklist = document.getElementById('checklist-documentos');
@@ -523,7 +568,7 @@
                 checkbox.checked = candidato.documentos[doc];
                 const label = document.createElement('label');
                 label.htmlFor = doc;
-                label.textContent = documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' ');
+                label.textContent = doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 div.appendChild(checkbox);
                 div.appendChild(label);
                 if (!documentosFixos.includes(doc)) {
@@ -536,6 +581,7 @@
                     div.appendChild(deleteBtn);
                 }
                 checklist.appendChild(div);
+                makeDocumentItemClickable(div);
             });
 
             // Remover da lista para edição
@@ -560,7 +606,7 @@
             const csvData = candidatos.map(c => {
                 const row = { Nome: c.nome, Email: c.email || '' };
                 allDocs.forEach(doc => {
-                    row[documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' ')] = c.documentos[doc] ? 'Sim' : 'Não';
+                    row[doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())] = c.documentos[doc] ? 'Sim' : 'Não';
                 });
                 return row;
             });
@@ -588,10 +634,10 @@
                 reader.onload = function(e) {
                     try {
                         const imported = JSON.parse(e.target.result);
-                        candidatos = imported;
+                        candidatos = candidatos.concat(imported);
                         localStorage.setItem('candidatos', JSON.stringify(candidatos));
                         renderizarTabela();
-                        alert('Dados importados com sucesso!');
+                        alert('Dados importados e mesclados com sucesso!');
                     } catch (error) {
                         alert('Erro ao importar dados: ' + error.message);
                     }
@@ -623,13 +669,36 @@
             toggleButton.innerHTML = isDark ? '<i class="material-icons">wb_sunny</i>' : '<i class="material-icons">nights_stay</i>';
         });
 
-        // Botão apagar tudo
-        document.getElementById('btn-apagar-tudo').addEventListener('click', function() {
+        // Função para apagar tudo
+        function apagarTudo() {
             if (confirm('Tem certeza que deseja apagar todos os dados? Esta ação não pode ser desfeita.')) {
+                const darkMode = localStorage.getItem('dark-mode');
                 localStorage.clear();
-                location.reload();
+                if (darkMode !== null) {
+                    localStorage.setItem('dark-mode', darkMode);
+                }
+                candidatos = [];
+                documentosAdicionais = [];
+                renderizarTabela();
+                // Reset checklist to fixed documents
+                const checklist = document.getElementById('checklist-documentos');
+                checklist.innerHTML = `
+                    <div class="document-item"><input type="checkbox" id="entrevista_online"><label for="entrevista_online">Entrevista Online</label></div>
+                    <div class="document-item"><input type="checkbox" id="curriculo"><label for="curriculo">Currículo</label></div>
+                    <div class="document-item"><input type="checkbox" id="rg"><label for="rg">RG</label></div>
+                    <div class="document-item"><input type="checkbox" id="ctps"><label for="ctps">CTPS</label></div>
+                    <div class="document-item"><input type="checkbox" id="comprovante_situacao_cadastral_cpf"><label for="comprovante_situacao_cadastral_cpf">Comprovante de Situação Cadastral CPF</label></div>
+                    <div class="document-item"><input type="checkbox" id="certidao_nascimento_casamento"><label for="certidao_nascimento_casamento">Certidão de Nascimento ou Casamento</label></div>
+                    <div class="document-item"><input type="checkbox" id="historico_escolar"><label for="historico_escolar">Histórico Escolar</label></div>
+                    <div class="document-item"><input type="checkbox" id="comprovante_residencia"><label for="comprovante_residencia">Comprovante de Residência</label></div>
+                    <div class="document-item"><input type="checkbox" id="certificado_alistamento"><label for="certificado_alistamento">Certificado de Alistamento</label></div>
+                    <div class="document-item"><input type="checkbox" id="cpf_filhos"><label for="cpf_filhos">CPF dos Filhos</label></div>
+                    <div class="document-item"><input type="checkbox" id="certidao_nascimento_filhos"><label for="certidao_nascimento_filhos">Certidão de Nascimento dos Filhos</label></div>
+                    <div class="document-item"><input type="checkbox" id="cartao_vacina_filhos"><label for="cartao_vacina_filhos">Cartão de Vacina dos Filhos</label></div>
+                `;
+                document.getElementById('novo-documento').value = '';
             }
-        });
+        }
 
         // Menu hamburger
         function toggleMenu() {
@@ -683,8 +752,12 @@
                 let completo = true;
                 Object.keys(candidato.documentos).forEach(doc => {
                     if (!candidato.documentos[doc]) {
+                        // Skip children's documents if no children
+                        if (!(candidato.temFilhos || false) && ['cpf_filhos', 'certidao_nascimento_filhos', 'cartao_vacina_filhos'].includes(doc)) return;
+                        // Skip enlistment certificate for women
+                        if ((candidato.genero || 'masculino') === 'feminino' && doc === 'certificado_alistamento') return;
                         completo = false;
-                        documentosFaltantes.push(documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' '));
+                        documentosFaltantes.push(doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
                     }
                 });
 
@@ -706,7 +779,7 @@
         }
 
         // Evento de pesquisa
-        document.getElementById('pesquisa').addEventListener('input', function() {
+        document.getElementById('pesquisa').addEventListener('keyup', function() {
             renderCandidatos(this.value);
         });
     </script>
