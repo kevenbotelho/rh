@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Verificação de Documentos - RH</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+            --form-bg: #fff;
+            --shadow: rgba(0,0,0,0.1);
+            --border: #ddd;
+            --table-bg: #fff;
+            --th-bg: #f8f9fa;
+            --incompleto-bg: #ffe6e6;
+            --document-bg: #fafafa;
+            --document-hover: #e9ecef;
+            --button-bg: #007bff;
+            --button-hover: #0056b3;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --form-bg: #1e1e1e;
+            --shadow: rgba(255,255,255,0.1);
+            --border: #444;
+            --table-bg: #1e1e1e;
+            --th-bg: #2a2a2a;
+            --incompleto-bg: #4a2a2a;
+            --document-bg: #2a2a2a;
+            --document-hover: #3a3a3a;
+            --button-bg: #1a73e8;
+            --button-hover: #0d62d1;
+        }
+
+        /* CSS para layout responsivo e visual limpo */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+        }
+        form {
+            background-color: var(--form-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--shadow);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--form-bg);
+            color: var(--text-color);
+        }
+        button {
+            background-color: var(--button-bg);
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--table-bg);
+            box-shadow: 0 0 10px var(--shadow);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-color);
+        }
+        th {
+            background-color: var(--th-bg);
+            font-weight: bold;
+        }
+        .completo {
+            color: green;
+            font-weight: bold;
+        }
+        .incompleto {
+            color: red;
+        }
+        .incompleto-candidato {
+            background-color: var(--incompleto-bg);
+        }
+        .contador {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        .checklist-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background-color: var(--document-bg);
+            transition: background-color 0.3s;
+        }
+        .document-item:hover {
+            background-color: var(--document-hover);
+        }
+        .document-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .document-item label {
+            margin: 0;
+            flex: 1;
+            cursor: pointer;
+            font-weight: normal;
+            color: var(--text-color);
+        }
+        .delete-doc {
+            background: none;
+            border: none;
+            color: red;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+        .add-document {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .add-document input, .add-document button {
+            flex: 1;
+            width: auto;
+        }
+        .exportar, .importar {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .exportar button, .importar button {
+            width: auto;
+            margin: 0 10px;
+        }
+        input[type="file"] {
+            width: auto;
+        }
+        #toggle-dark-mode {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: var(--form-bg);
+            box-shadow: 0 0 5px var(--shadow);
+            z-index: 1001;
+        }
+        .bar1, .bar2, .bar3 {
+            width: 25px;
+            height: 3px;
+            background-color: var(--text-color);
+            margin: 3px 0;
+            transition: 0.4s;
+            border-radius: 2px;
+        }
+        .change .bar1 {
+            transform: rotate(-45deg) translate(-5px, 5px);
+        }
+        .change .bar2 {
+            opacity: 0;
+        }
+        .change .bar3 {
+            transform: rotate(45deg) translate(-5px, -5px);
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: var(--form-bg);
+            transition: left 0.3s ease, box-shadow 0.3s ease, visibility 0.3s ease;
+            padding: 70px 20px 20px;
+            box-shadow: none;
+            z-index: 1000;
+            border-right: none;
+            visibility: hidden;
+        }
+        nav.open {
+            left: 0;
+            box-shadow: 2px 0 10px var(--shadow);
+            border-right: 1px solid var(--border);
+            visibility: visible;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        nav li {
+            margin: 15px 0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        nav li:last-child {
+            border-bottom: none;
+        }
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        nav a:hover {
+            background-color: var(--button-bg);
+            color: white;
+        }
+
+        /* Page sections */
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* Candidatos page */
+        .candidatos-section {
+            margin-bottom: 40px;
+        }
+        .candidatos-section h3 {
+            margin-bottom: 10px;
+        }
+        .candidatos-list {
+            background-color: var(--form-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--shadow);
+        }
+        .candidato-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .candidato-item:last-child {
+            border-bottom: none;
+        }
+        #pesquisa {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    </style>
+    <!-- CDN para PapaParse e FileSaver -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="hamburger" onclick="toggleMenu()">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+    </div>
+    <nav id="nav-menu">
+        <ul>
+            <li><a href="#" onclick="showPage('home')">Home</a></li>
+            <li><a href="#" onclick="toggleDarkMode()">Modo Claro/Escuro</a></li>
+            <li><a href="#" onclick="showPage('candidatos')">Candidatos</a></li>
+        </ul>
+    </nav>
+    <h1>Sistema de Verificação de Documentos - RH</h1>
+
+    <div class="page page-home active">
+        <!-- Formulário de Cadastro -->
+        <form id="form-candidato">
+            <h2>Cadastrar Candidato</h2>
+            <label for="nome">Nome do Candidato (obrigatório):</label>
+            <input type="text" id="nome" required>
+
+            <label for="email">E-mail (opcional):</label>
+            <input type="email" id="email">
+
+            <label>Checklist de Documentos:</label>
+            <div id="checklist-documentos" class="checklist-container">
+                <div class="document-item"><input type="checkbox" id="cpf"><label for="cpf">CPF</label></div>
+                <div class="document-item"><input type="checkbox" id="rg"><label for="rg">RG</label></div>
+                <div class="document-item"><input type="checkbox" id="curriculo"><label for="curriculo">Currículo</label></div>
+                <div class="document-item"><input type="checkbox" id="endereco"><label for="endereco">Comprovante de Endereço</label></div>
+                <div class="document-item"><input type="checkbox" id="certificados"><label for="certificados">Certificados</label></div>
+            </div>
+            <div class="add-document">
+                <input type="text" id="novo-documento" placeholder="Nome do documento adicional">
+                <button type="button" id="adicionar-documento">Adicionar Documento</button>
+            </div>
+
+            <button type="submit">Salvar Candidato</button>
+        </form>
+
+        <!-- Contador de Candidatos -->
+        <div class="contador">Total de Candidatos: <span id="total-candidatos">0</span></div>
+
+        <!-- Tabela de Candidatos -->
+        <table id="tabela-candidatos">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Status Documentos</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="corpo-tabela">
+                <!-- Linhas serão adicionadas dinamicamente -->
+            </tbody>
+        </table>
+
+        <!-- Botões de Exportação e Importação -->
+        <div class="exportar">
+            <button id="exportar-csv">Exportar CSV</button>
+            <button id="exportar-json">Exportar JSON</button>
+        </div>
+        <div class="importar">
+            <input type="file" id="importar-json" accept=".json">
+            <button id="btn-importar">Importar JSON</button>
+        </div>
+        <div class="apagar-tudo" style="text-align: center; margin-top: 20px;">
+            <button id="btn-apagar-tudo" style="background-color: red; color: white;">Apagar Tudo</button>
+        </div>
+    </div>
+
+    <div class="page page-candidatos">
+        <input type="text" id="pesquisa" placeholder="Pesquisar por nome...">
+        <div class="candidatos-section">
+            <h3>Candidatos com Documentação Completa</h3>
+            <div class="candidatos-list" id="lista-completos">
+                <!-- Candidatos completos -->
+            </div>
+        </div>
+        <div class="candidatos-section">
+            <h3>Candidatos com Documentação Incompleta</h3>
+            <div class="candidatos-list" id="lista-incompletos">
+                <!-- Candidatos incompletos -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript para funcionalidades
+
+        // Carregar candidatos do localStorage
+        let candidatos = JSON.parse(localStorage.getItem('candidatos')) || [];
+
+        // Lista de documentos fixos
+        const documentosFixos = ['cpf', 'rg', 'curriculo', 'endereco', 'certificados'];
+
+        // Carregar documentos adicionais
+        let documentosAdicionais = JSON.parse(localStorage.getItem('documentos-adicionais')) || [];
+
+        // Adicionar documentos adicionais ao checklist inicial
+        documentosAdicionais.forEach(doc => {
+            const div = document.createElement('div');
+            div.className = 'document-item';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = doc.replace(/\s+/g, '_').toLowerCase();
+            checkbox.value = doc;
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = doc;
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-doc';
+            deleteBtn.textContent = '×';
+            deleteBtn.onclick = function() {
+                div.remove();
+                documentosAdicionais = documentosAdicionais.filter(d => d !== doc);
+                localStorage.setItem('documentos-adicionais', JSON.stringify(documentosAdicionais));
+            };
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            div.appendChild(deleteBtn);
+            document.getElementById('checklist-documentos').appendChild(div);
+        });
+
+        // Função para adicionar documento dinâmico
+        document.getElementById('adicionar-documento').addEventListener('click', function() {
+            const nomeDocumento = document.getElementById('novo-documento').value.trim();
+            if (nomeDocumento && !document.getElementById('checklist-documentos').querySelector(`input[id="${nomeDocumento.replace(/\s+/g, '_').toLowerCase()}"]`) && !documentosAdicionais.includes(nomeDocumento)) {
+                const div = document.createElement('div');
+                div.className = 'document-item';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = nomeDocumento.replace(/\s+/g, '_').toLowerCase();
+                checkbox.value = nomeDocumento;
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = nomeDocumento;
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-doc';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = function() {
+                    div.remove();
+                    documentosAdicionais = documentosAdicionais.filter(d => d !== nomeDocumento);
+                    localStorage.setItem('documentos-adicionais', JSON.stringify(documentosAdicionais));
+                };
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                div.appendChild(deleteBtn);
+                document.getElementById('checklist-documentos').appendChild(div);
+                documentosAdicionais.push(nomeDocumento);
+                localStorage.setItem('documentos-adicionais', JSON.stringify(documentosAdicionais));
+                document.getElementById('novo-documento').value = '';
+            }
+        });
+
+        // Função para renderizar tabela
+        function renderizarTabela() {
+            const corpo = document.getElementById('corpo-tabela');
+            corpo.innerHTML = '';
+            document.getElementById('total-candidatos').textContent = candidatos.length;
+
+            candidatos.forEach((candidato, index) => {
+                const documentosFaltantes = [];
+                let completo = true;
+                Object.keys(candidato.documentos).forEach(doc => {
+                    if (!candidato.documentos[doc]) {
+                        completo = false;
+                        documentosFaltantes.push(documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' '));
+                    }
+                });
+
+                const linha = document.createElement('tr');
+                if (!completo) linha.classList.add('incompleto-candidato');
+
+                linha.innerHTML = `
+                    <td>${candidato.nome}</td>
+                    <td>${candidato.email || 'N/A'}</td>
+                    <td class="${completo ? 'completo' : 'incompleto'}">
+                        ${completo ? 'Completo' : 'Faltam: ' + documentosFaltantes.join(', ')}
+                    </td>
+                    <td>
+                        <button onclick="editarCandidato(${index})">Editar</button>
+                        <button onclick="excluirCandidato(${index})">Excluir</button>
+                    </td>
+                `;
+                corpo.appendChild(linha);
+            });
+        }
+
+        // Função para salvar candidato
+        document.getElementById('form-candidato').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const documentos = {};
+            const checkboxes = document.querySelectorAll('#checklist-documentos input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                documentos[cb.id] = cb.checked;
+            });
+
+            candidatos.push({ nome, email, documentos });
+            localStorage.setItem('candidatos', JSON.stringify(candidatos));
+            renderizarTabela();
+            this.reset();
+        });
+
+        // Função para editar candidato
+        function editarCandidato(index) {
+            const candidato = candidatos[index];
+            document.getElementById('nome').value = candidato.nome;
+            document.getElementById('email').value = candidato.email || '';
+
+            // Limpar checklist e recriar com documentos do candidato
+            const checklist = document.getElementById('checklist-documentos');
+            checklist.innerHTML = '';
+            Object.keys(candidato.documentos).forEach(doc => {
+                const div = document.createElement('div');
+                div.className = 'document-item';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = doc;
+                checkbox.checked = candidato.documentos[doc];
+                const label = document.createElement('label');
+                label.htmlFor = doc;
+                label.textContent = documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' ');
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                if (!documentosFixos.includes(doc)) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-doc';
+                    deleteBtn.textContent = '×';
+                    deleteBtn.onclick = function() {
+                        div.remove();
+                    };
+                    div.appendChild(deleteBtn);
+                }
+                checklist.appendChild(div);
+            });
+
+            // Remover da lista para edição
+            candidatos.splice(index, 1);
+            localStorage.setItem('candidatos', JSON.stringify(candidatos));
+            renderizarTabela();
+        }
+
+        // Função para excluir candidato
+        function excluirCandidato(index) {
+            if (confirm('Tem certeza que deseja excluir este candidato?')) {
+                candidatos.splice(index, 1);
+                localStorage.setItem('candidatos', JSON.stringify(candidatos));
+                renderizarTabela();
+            }
+        }
+
+        // Função para exportar CSV
+        document.getElementById('exportar-csv').addEventListener('click', function() {
+            const allDocs = new Set();
+            candidatos.forEach(c => Object.keys(c.documentos).forEach(doc => allDocs.add(doc)));
+            const csvData = candidatos.map(c => {
+                const row = { Nome: c.nome, Email: c.email || '' };
+                allDocs.forEach(doc => {
+                    row[documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' ')] = c.documentos[doc] ? 'Sim' : 'Não';
+                });
+                return row;
+            });
+            const csv = Papa.unparse(csvData);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, 'candidatos.csv');
+        });
+
+        // Função para exportar JSON
+        document.getElementById('exportar-json').addEventListener('click', function() {
+            const dataStr = JSON.stringify(candidatos, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'candidatos.json';
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        });
+
+        // Função para importar JSON
+        document.getElementById('btn-importar').addEventListener('click', function() {
+            const file = document.getElementById('importar-json').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        candidatos = imported;
+                        localStorage.setItem('candidatos', JSON.stringify(candidatos));
+                        renderizarTabela();
+                        alert('Dados importados com sucesso!');
+                    } catch (error) {
+                        alert('Erro ao importar dados: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Renderizar tabela ao carregar página
+        renderizarTabela();
+
+        // Modo escuro
+        const toggleButton = document.getElementById('toggle-dark-mode');
+        const body = document.body;
+
+        // Carregar preferência do localStorage
+        if (localStorage.getItem('dark-mode') === 'true') {
+            body.classList.add('dark-mode');
+            toggleButton.innerHTML = '<i class="material-icons">wb_sunny</i>';
+        } else {
+            toggleButton.innerHTML = '<i class="material-icons">nights_stay</i>';
+        }
+
+        // Toggle modo escuro
+        toggleButton.addEventListener('click', function() {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('dark-mode', isDark);
+            toggleButton.innerHTML = isDark ? '<i class="material-icons">wb_sunny</i>' : '<i class="material-icons">nights_stay</i>';
+        });
+
+        // Botão apagar tudo
+        document.getElementById('btn-apagar-tudo').addEventListener('click', function() {
+            if (confirm('Tem certeza que deseja apagar todos os dados? Esta ação não pode ser desfeita.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+
+        // Menu hamburger
+        function toggleMenu() {
+            const nav = document.getElementById('nav-menu');
+            const hamburger = document.querySelector('.hamburger');
+            nav.classList.toggle('open');
+            hamburger.classList.toggle('change');
+        }
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', function(event) {
+            const nav = document.getElementById('nav-menu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!nav.contains(event.target) && !hamburger.contains(event.target)) {
+                nav.classList.remove('open');
+                hamburger.classList.remove('change');
+            }
+        });
+
+        // Mostrar página
+        function showPage(page) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.classList.remove('active'));
+            document.querySelector(`.page-${page}`).classList.add('active');
+            toggleMenu(); // Fechar menu
+            if (page === 'candidatos') {
+                renderCandidatos();
+            }
+        }
+
+        // Toggle modo escuro via menu
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('dark-mode', isDark);
+            toggleMenu(); // Fechar menu
+        }
+
+        // Renderizar listas de candidatos
+        function renderCandidatos(filter = '') {
+            const completos = document.getElementById('lista-completos');
+            const incompletos = document.getElementById('lista-incompletos');
+            completos.innerHTML = '';
+            incompletos.innerHTML = '';
+
+            candidatos.forEach(candidato => {
+                if (filter && !candidato.nome.toLowerCase().includes(filter.toLowerCase())) return;
+
+                const documentosFaltantes = [];
+                let completo = true;
+                Object.keys(candidato.documentos).forEach(doc => {
+                    if (!candidato.documentos[doc]) {
+                        completo = false;
+                        documentosFaltantes.push(documentosFixos.includes(doc) ? doc.charAt(0).toUpperCase() + doc.slice(1) : doc.replace(/_/g, ' '));
+                    }
+                });
+
+                const item = document.createElement('div');
+                item.className = 'candidato-item';
+                item.innerHTML = `
+                    <span>${candidato.nome} - ${candidato.email || 'N/A'}</span>
+                    <span class="${completo ? 'completo' : 'incompleto'}">
+                        ${completo ? 'Completo' : 'Faltam: ' + documentosFaltantes.join(', ')}
+                    </span>
+                `;
+
+                if (completo) {
+                    completos.appendChild(item);
+                } else {
+                    incompletos.appendChild(item);
+                }
+            });
+        }
+
+        // Evento de pesquisa
+        document.getElementById('pesquisa').addEventListener('input', function() {
+            renderCandidatos(this.value);
+        });
+    </script>
+</body>
+</html>
