@@ -434,7 +434,7 @@
                 <div class="document-item"><input type="checkbox" id="entrevista_online"><label for="entrevista_online">Entrevista Online</label></div>
                 <div class="document-item"><input type="checkbox" id="curriculo"><label for="curriculo">Currículo</label></div>
                 <div class="document-item"><input type="checkbox" id="rg"><label for="rg">RG</label></div>
-                <div class="document-item"><input type="checkbox" id="ctps"><label for="ctps">CTPS</label></div>
+                <div class="document-item"><input type="checkbox" id="ctps"><label for="ctps">CTPS Digital</label></div>
                 <div class="document-item"><input type="checkbox" id="comprovante_situacao_cadastral_cpf"><label for="comprovante_situacao_cadastral_cpf">Comprovante de Situação Cadastral CPF</label></div>
                 <div class="document-item"><input type="checkbox" id="certidao_nascimento_casamento"><label for="certidao_nascimento_casamento">Certidão de Nascimento ou Casamento</label></div>
                 <div class="document-item"><input type="checkbox" id="historico_escolar"><label for="historico_escolar">Histórico Escolar</label></div>
@@ -444,9 +444,9 @@
                 <div class="document-item"><input type="checkbox" id="certidao_nascimento_filhos"><label for="certidao_nascimento_filhos">Certidão de Nascimento dos Filhos</label></div>
                 <div class="document-item"><input type="checkbox" id="cartao_vacina_filhos"><label for="cartao_vacina_filhos">Cartão de Vacina dos Filhos</label></div>
                 <div class="document-item"><input type="checkbox" id="carteira_vacina"><label for="carteira_vacina">Carteira de Vacina</label></div>
-                <div class="document-item"><input type="checkbox" id="cns"><label for="cns">CNS</label></div>
+                <div class="document-item"><input type="checkbox" id="cns"><label for="cns">Cartão do SUS</label></div>
                 <div class="document-item"><input type="checkbox" id="pis_ou_nis_ou_nit"><label for="pis_ou_nis_ou_nit">PIS ou NIS ou NIT</label></div>
-                <div class="document-item"><input type="checkbox" id="extrato_bancario"><label for="extrato_bancario">Extrato Bancário</label></div>
+                <div class="document-item"><input type="checkbox" id="extrato_bancario"><label for="extrato_bancario">Extrato bancário (Banco do Brasil, Banpará ou Bradesco)</label></div>
                 <div class="document-item"><input type="checkbox" id="quitacao_eleitoral"><label for="quitacao_eleitoral">Quitação Eleitoral</label></div>
             </div>
             <div class="add-document">
@@ -643,7 +643,14 @@
                         // Skip enlistment certificate for women
                         if ((candidato.genero || 'masculino') === 'feminino' && doc === 'certificado_alistamento') return;
                         completo = false;
-                        documentosFaltantes.push(doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+                        
+                        // Mapeamento de nomes de documentos
+                        let docName = doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        if (doc === 'ctps') docName = 'CTPS Digital';
+                        if (doc === 'cns') docName = 'Cartão do SUS';
+                        if (doc === 'extrato_bancario') docName = 'Extrato bancário (Banco do Brasil, Banpará ou Bradesco)';
+                        
+                        documentosFaltantes.push(docName);
                     }
                 });
 
@@ -715,7 +722,14 @@
                 checkbox.checked = candidato.documentos[doc];
                 const label = document.createElement('label');
                 label.htmlFor = doc;
-                label.textContent = doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                // Mapeamento de nomes de documentos
+                let docName = doc.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                if (doc === 'ctps') docName = 'CTPS Digital';
+                if (doc === 'cns') docName = 'Cartão do SUS';
+                if (doc === 'extrato_bancario') docName = 'Extrato bancário (Banco do Brasil, Banpará ou Bradesco)';
+                
+                label.textContent = docName;
                 div.appendChild(checkbox);
                 div.appendChild(label);
                 if (!documentosFixos.includes(doc)) {
