@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Verificação de Documentos - RH</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-id-card"></i> Sistema de Verificação de Documentos</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="theme-toggle">
+                        <i class="fas fa-moon"></i> <span id="theme-text">Dark Mode</span>
+                    </button>
+                    <div class="stats">
+                        <span class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span id="total-candidates">0</span> Candidatos
+                        </span>
+                        <span class="stat-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="completed-candidates">0</span> Completos
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-btn active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="nav-btn" data-section="form">
+                <i class="fas fa-plus-circle"></i> Novo Cadastro
+            </button>
+            <button class="nav-btn" data-section="data-management">
+                <i class="fas fa-database"></i> Gestão de Dados
+            </button>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="section-header">
+                <h2>Controle de Documentos</h2>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Buscar por nome, CPF ou cargo...">
+                    <button class="btn btn-primary" id="clear-search">
+                        <i class="fas fa-times"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Documentos</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candidates-table">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+                <div id="no-results" class="no-results" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <p>Nenhum candidato encontrado</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Section -->
+        <section id="form" class="section">
+            <div class="section-header">
+                <h2 id="form-title">Novo Cadastro</h2>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="cancel-form">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button class="btn btn-primary" id="save-form" form="candidate-form" type="submit">
+  <i class="fas fa-save"></i> Salvar (Enter)
+</button>
+
+                </div>
+            </div>
+
+            <form id="candidate-form" class="form-grid">
+                <input type="hidden" id="candidate-id">
+                
+                <!-- Basic Information -->
+                <div class="form-group">
+                    <label for="name">Nome Completo *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gênero *</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Selecione...</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="has-children">Possui Filhos?</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="has-children" name="hasChildren">
+                            Sim
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Required Documents -->
+                <div class="form-group">
+                    <label>Checklist de Documentos</label>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="documents" value="Entrevista Online"> Entrevista Online</label>
+                        <label><input type="checkbox" name="documents" value="Curriculo"> Currículo</label>
+                        <label><input type="checkbox" name="documents" value="RG"> RG</label>
+                        <label><input type="checkbox" name="documents" value="CTPS Digital"> CTPS Digital</label>
+                        <label><input type="checkbox" name="documents" value="Comprovante de Situacao Cadastral CPF"> Comprovante de Situação Cadastral CPF</label>
+                        <label><input type="checkbox" name="documents" value="Certidao de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
+                        <label><input type="checkbox" name="documents" value="Historico Escolar"> Histórico Escolar</label>
+                        <label><input type="checkbox" name="documents" value="Comprovante de Residencia"> Comprovante de Residência</label>
+                        <label><input type="checkbox" name="documents" value="Certificado de Alistamento"> Certificado de Alistamento</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacina"> Carteira de Vacina</label>
+                        <label><input type="checkbox" name="documents" value="Cartao do SUS"> Cartão do SUS</label>
+                        <label><input type="checkbox" name="documents" value="PIS ou NIS ou NIT"> PIS ou NIS ou NIT</label>
+                        <label><input type="checkbox" name="documents" value="Extrato Bancario"> Extrato bancário (Banco do Brasil, Banpará ou Bradesco)</label>
+                        <label><input type="checkbox" name="documents" value="Quitacao Eleitoral"> Quitação Eleitoral</label>
+                    </div>
+                </div>
+
+                <!-- Conditional Fields - Children Documents -->
+                <div id="children-docs-field" class="form-group" style="display: none;">
+                    <label>Documentos dos Filhos (Obrigatórios se tiver filhos)</label>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="documents" value="CPF dos Filhos"> CPF dos Filhos</label>
+                        <label><input type="checkbox" name="documents" value="Certidao de Nascimento dos Filhos"> Certidão de Nascimento dos Filhos</label>
+                        <label><input type="checkbox" name="documents" value="Cartao de Vacina dos Filhos"> Cartão de Vacina dos Filhos</label>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Data Management Section -->
+        <section id="data-management" class="section">
+            <div class="section-header">
+                <h2>Gestão de Dados</h2>
+                <p>Realize backup, restauração e exportação dos dados</p>
+            </div>
+
+            <div class="management-grid">
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>Backup Completo</h3>
+                    <p>Exportar todos os dados para arquivo JSON</p>
+                    <button class="btn btn-primary" id="backup-data">
+                        <i class="fas fa-download"></i> Fazer Backup
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h3>Restaurar Dados</h3>
+                    <p>Importar dados a partir de arquivo JSON</p>
+                    <input type="file" id="restore-file" accept=".json" style="display: none;">
+                    <button class="btn btn-secondary" id="restore-data">
+                        <i class="fas fa-upload"></i> Restaurar
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fas fa-file-csv"></i>
+                    </div>
+                    <h3>Exportar Relatório</h3>
+                    <p>Gerar relatório CSV com status dos documentos</p>
+                    <button class="btn btn-primary" id="export-csv">
+                        <i class="fas fa-file-csv"></i> Exportar CSV
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon warning">
+                        <i class="fas fa-trash"></i>
+                    </div>
+                    <h3>Reset Total</h3>
+                    <p>Limpar todos os dados do LocalStorage</p>
+                    <button class="btn btn-danger" id="reset-data">
+                        <i class="fas fa-trash"></i> Resetar Dados
+                    </button>
+                </div>
+            </div>
+
+            <!-- Communication Tools -->
+            <div class="section-header">
+                <h2>Comunicação</h2>
+                <p>Gere mensagens para contato com candidatos</p>
+            </div>
+
+            <div class="communication-grid">
+                <div class="card">
+                    <h3>Lista de Pendências</h3>
+                    <div class="pending-list" id="pending-list">
+                        <!-- Pending items will be inserted here -->
+                    </div>
+                    <button class="btn btn-secondary" id="print-pending">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h3>Mensagem para Candidato</h3>
+                    <div class="message-preview" id="message-preview">
+                        <!-- Message will be generated here -->
+                    </div>
+                    <div class="message-actions">
+                        <button class="btn btn-primary" id="copy-message">
+                            <i class="fas fa-copy"></i> Copiar Mensagem
+                        </button>
+                        <button class="btn btn-success" id="whatsapp-message">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                        <button class="btn btn-secondary" id="email-message">
+                            <i class="fas fa-envelope"></i> Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
