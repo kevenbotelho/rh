@@ -86,43 +86,67 @@
                         <i class="fas fa-times"></i> Cancelar
                     </button>
                     <button class="btn btn-primary" id="save-form" form="candidate-form" type="submit">
-  <i class="fas fa-save"></i> Salvar (Enter)
-</button>
-
+                        <i class="fas fa-save"></i> Salvar (Enter)
+                    </button>
                 </div>
             </div>
 
-            <form id="candidate-form" class="form-grid">
+            <form id="candidate-form" class="form-container">
                 <input type="hidden" id="candidate-id">
                 
-                <!-- Basic Information -->
-                <div class="form-group">
-                    <label for="name">Nome Completo *</label>
-                    <input type="text" id="name" name="name" required>
+                <!-- Basic Information Row -->
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="name">Nome Completo *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group flex-1">
+                        <label for="gender">Gênero *</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Selecione...</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group flex-small">
+                        <label for="has-children">Possui Filhos?</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="has-children" name="hasChildren">
+                                Sim
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="gender">Gênero *</label>
-                    <select id="gender" name="gender" required>
-                        <option value="">Selecione...</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Feminino">Feminino</option>
-                    </select>
+                <!-- Quantidade de Filhos -->
+                <div id="children-count-field" class="form-row" style="display: none;">
+                    <div class="form-group flex-small">
+                        <label for="children-count">Quantos filhos?</label>
+                        <select id="children-count" name="childrenCount">
+                            <option value="0">Selecione...</option>
+                            <option value="1">1 filho</option>
+                            <option value="2">2 filhos</option>
+                            <option value="3">3 filhos</option>
+                            <option value="4">4 filhos</option>
+                            <option value="5">5 filhos</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="has-children">Possui Filhos?</label>
-                    <div class="checkbox-group">
-                        <label>
-                            <input type="checkbox" id="has-children" name="hasChildren">
-                            Sim
-                        </label>
+                <!-- Documentos dos Filhos (Dinâmico) -->
+                <div id="children-documents-field" style="display: none;">
+                    <div class="form-section-title">Documentos dos Filhos</div>
+                    <div id="children-documents-container">
+                        <!-- Documentos de cada filho serão inseridos aqui -->
                     </div>
                 </div>
 
                 <!-- Required Documents -->
-                <div class="form-group">
-                    <label>Checklist de Documentos</label>
+                <div class="form-section">
+                    <div class="form-section-title">Checklist de Documentos</div>
                     <div class="checkbox-grid">
                         <label><input type="checkbox" name="documents" value="Entrevista Online"> Entrevista Online</label>
                         <label><input type="checkbox" name="documents" value="Curriculo"> Currículo</label>
@@ -136,18 +160,8 @@
                         <label><input type="checkbox" name="documents" value="Carteira de Vacina"> Carteira de Vacina</label>
                         <label><input type="checkbox" name="documents" value="Cartao do SUS"> Cartão do SUS</label>
                         <label><input type="checkbox" name="documents" value="PIS ou NIS ou NIT"> PIS ou NIS ou NIT</label>
-                        <label><input type="checkbox" name="documents" value="Extrato Bancario"> Extrato bancário (Banco do Brasil, Banpará ou Bradesco)</label>
+                        <label><input type="checkbox" name="documents" value="Extrato Bancario"> Extrato bancário</label>
                         <label><input type="checkbox" name="documents" value="Quitacao Eleitoral"> Quitação Eleitoral</label>
-                    </div>
-                </div>
-
-                <!-- Conditional Fields - Children Documents -->
-                <div id="children-docs-field" class="form-group" style="display: none;">
-                    <label>Documentos dos Filhos (Obrigatórios se tiver filhos)</label>
-                    <div class="checkbox-grid">
-                        <label><input type="checkbox" name="documents" value="CPF dos Filhos"> CPF dos Filhos</label>
-                        <label><input type="checkbox" name="documents" value="Certidao de Nascimento dos Filhos"> Certidão de Nascimento dos Filhos</label>
-                        <label><input type="checkbox" name="documents" value="Cartao de Vacina dos Filhos"> Cartão de Vacina dos Filhos</label>
                     </div>
                 </div>
             </form>
@@ -248,9 +262,28 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
+    <!-- Print Modal -->
+    <div id="print-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lista de Pendências de Documentos</h2>
+                <button class="modal-close" id="close-print-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="print-modal-body">
+                <!-- Content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-print-modal">Fechar</button>
+                <button class="btn btn-primary" id="confirm-print-modal">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=10"></script>
 </body>
 </html>

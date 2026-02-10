@@ -34,6 +34,7 @@ class DocumentVerificationSystem {
         });
         
         document.getElementById('has-children').addEventListener('change', () => this.toggleChildrenDocsField());
+        document.getElementById('children-count').addEventListener('change', () => this.generateChildrenDocumentsFields());
         
         // Busca
         document.getElementById('search-input').addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -47,7 +48,10 @@ class DocumentVerificationSystem {
         document.getElementById('reset-data').addEventListener('click', () => this.resetData());
         
         // Comunicação
-        document.getElementById('print-pending').addEventListener('click', () => this.printPendingList());
+        document.getElementById('print-pending').addEventListener('click', () => this.showPrintModal());
+        document.getElementById('close-print-modal').addEventListener('click', () => this.hidePrintModal());
+        document.getElementById('cancel-print-modal').addEventListener('click', () => this.hidePrintModal());
+        document.getElementById('confirm-print-modal').addEventListener('click', () => this.executePrint());
         document.getElementById('copy-message').addEventListener('click', () => this.copyMessage());
         document.getElementById('whatsapp-message').addEventListener('click', () => this.shareWhatsApp());
         document.getElementById('email-message').addEventListener('click', () => this.shareEmail());
@@ -68,43 +72,14 @@ class DocumentVerificationSystem {
                 this.candidates = [];
             }
         } else {
-            // Dados de exemplo para demonstração
-            this.candidates = this.generateSampleData();
+            // Sistema começa zerado, sem dados de exemplo
+            this.candidates = [];
         }
     }
 
     saveData() {
         localStorage.setItem('rh_candidates', JSON.stringify(this.candidates));
         this.showToast('Dados salvos com sucesso!', 'success');
-    }
-
-    generateSampleData() {
-        return [
-            {
-                id: this.generateId(),
-                name: 'João Silva',
-                gender: 'Masculino',
-                hasChildren: false,
-                documents: ['Entrevista Online', 'Curriculo', 'RG', 'CTPS Digital', 'Comprovante de Situacao Cadastral CPF', 'Certidao de Nascimento ou Casamento', 'Historico Escolar', 'Comprovante de Residencia', 'Certificado de Alistamento', 'Carteira de Vacina', 'Cartao do SUS', 'PIS ou NIS ou NIT', 'Extrato Bancario', 'Quitacao Eleitoral'],
-                createdAt: new Date().toISOString()
-            },
-            {
-                id: this.generateId(),
-                name: 'Maria Santos',
-                gender: 'Feminino',
-                hasChildren: true,
-                documents: ['Entrevista Online', 'Curriculo', 'RG', 'CTPS Digital', 'Comprovante de Situacao Cadastral CPF', 'Certidao de Nascimento ou Casamento', 'Historico Escolar', 'Comprovante de Residencia', 'Carteira de Vacina', 'Cartao do SUS', 'PIS ou NIS ou NIT', 'Extrato Bancario', 'Quitacao Eleitoral', 'CPF dos Filhos', 'Certidao de Nascimento dos Filhos', 'Cartao de Vacina dos Filhos'],
-                createdAt: new Date().toISOString()
-            },
-            {
-                id: this.generateId(),
-                name: 'Carlos Oliveira',
-                gender: 'Masculino',
-                hasChildren: false,
-                documents: ['Entrevista Online', 'Curriculo'],
-                createdAt: new Date().toISOString()
-            }
-        ];
     }
 
     generateId() {
@@ -151,11 +126,13 @@ class DocumentVerificationSystem {
             docs.push('Certificado de Alistamento');
         }
 
-        // Documentos condicionais
-        if (candidate.hasChildren) {
-            docs.push('CPF dos Filhos');
-            docs.push('Certidao de Nascimento dos Filhos');
-            docs.push('Cartao de Vacina dos Filhos');
+        // Documentos condicionais - documentos específicos por filho
+        if (candidate.hasChildren && candidate.childrenCount) {
+            for (let i = 1; i <= candidate.childrenCount; i++) {
+                docs.push(`CPF do Filho ${i}`);
+                docs.push(`Certidão de Nascimento do Filho ${i}`);
+                docs.push(`Cartão de Vacina do Filho ${i}`);
+            }
         }
 
         return docs;
@@ -332,6 +309,40 @@ class DocumentVerificationSystem {
 
         // Atualiza campos condicionais
         this.toggleChildrenDocsField();
+        
+        // Carrega quantidade de filhos se tiver
+        const childrenCount = candidate.childrenCount || 0;
+        if (candidate.hasChildren && childrenCount > 0) {
+            document.getElementById('children-count').value = childrenCount;
+            this.generateChildrenDocumentsFields();
+            
+            // Marca documentos de cada filho após os campos serem gerados
+            setTimeout(() => {
+                for (let i = 1; i <= childrenCount; i++) {
+                    document.querySelectorAll(`input[name="child-${i}-documents"]`).forEach(checkbox => {
+                        checkbox.checked = candidate.documents.includes(checkbox.value);
+                    });
+                }
+            }, 100);
+        }
+        
+        // Se tem filhos mas não tem childrenCount (dado antigo), assume 1 filho
+        if (candidate.hasChildren && !candidate.childrenCount) {
+            document.getElementById('children-count').value = 1;
+            this.generateChildrenDocumentsFields();
+            
+            // Tenta marcar os documentos antigos se existirem
+            setTimeout(() => {
+                // Para dados antigos, tenta marcar "CPF dos Filhos", "Certidao...", "Cartao..."
+                const oldDocNames = ['CPF dos Filhos', 'Certidao de Nascimento dos Filhos', 'Cartao de Vacina dos Filhos'];
+                oldDocNames.forEach(docName => {
+                    const checkbox = document.querySelector(`input[name="child-1-documents"][value="${docName}"]`);
+                    if (checkbox) {
+                        checkbox.checked = candidate.documents.includes(docName);
+                    }
+                });
+            }, 100);
+        }
     }
 
     resetForm() {
@@ -339,6 +350,10 @@ class DocumentVerificationSystem {
         document.getElementById('candidate-form').reset();
         document.getElementById('candidate-id').value = '';
         document.getElementById('children-docs-field').style.display = 'none';
+        document.getElementById('children-count-field').style.display = 'none';
+        document.getElementById('children-documents-field').style.display = 'none';
+        document.getElementById('children-documents-container').innerHTML = '';
+        document.getElementById('children-count').value = '0';
         document.querySelectorAll('input[name="documents"]').forEach(cb => cb.checked = false);
     }
 
@@ -346,19 +361,31 @@ class DocumentVerificationSystem {
         e.preventDefault();
         
         const formData = new FormData(e.target);
+        const hasChildren = document.getElementById('has-children').checked;
+        const childrenCount = parseInt(document.getElementById('children-count').value) || 0;
+        
         const candidateData = {
             name: formData.get('name'),
             gender: formData.get('gender'),
-            hasChildren: document.getElementById('has-children').checked,
+            hasChildren: hasChildren,
+            childrenCount: childrenCount,
             documents: [],
-            childrenDocs: formData.get('childrenDocs'),
             createdAt: new Date().toISOString()
         };
 
-        // Coleta documentos selecionados
+        // Coleta documentos selecionados do candidato
         document.querySelectorAll('input[name="documents"]:checked').forEach(cb => {
             candidateData.documents.push(cb.value);
         });
+
+        // Coleta documentos de cada filho
+        if (hasChildren && childrenCount > 0) {
+            for (let i = 1; i <= childrenCount; i++) {
+                document.querySelectorAll(`input[name="child-${i}-documents"]:checked`).forEach(cb => {
+                    candidateData.documents.push(cb.value);
+                });
+            }
+        }
 
         // Validação
         if (!this.validateForm(candidateData)) return;
@@ -451,6 +478,8 @@ class DocumentVerificationSystem {
         
         // Reseta o formulário após o cadastro bem-sucedido
         this.resetForm();
+        this.currentEditId = null;
+        document.getElementById('form-title').textContent = 'Novo Cadastro';
     }
 
     updateCandidate(id, data) {
@@ -483,23 +512,51 @@ class DocumentVerificationSystem {
     
 
     toggleChildrenDocsField() {
-        const childrenField = document.getElementById('children-docs-field');
         const hasChildren = document.getElementById('has-children').checked;
+        const countField = document.getElementById('children-count-field');
+        const documentsField = document.getElementById('children-documents-field');
+        const oldChildrenField = document.getElementById('children-docs-field');
         
         if (hasChildren) {
-            childrenField.style.display = 'block';
-            // Não marca os documentos dos filhos automaticamente
-            // O usuário deve marcar manualmente os documentos que possui
+            countField.style.display = 'block';
+            oldChildrenField.style.display = 'none';
         } else {
-            childrenField.style.display = 'none';
-            // Desmarca os documentos dos filhos quando não tem filhos
-            const cpfFilhosCheckbox = document.querySelector('input[name="documents"][value="CPF dos Filhos"]');
-            const certidaoFilhosCheckbox = document.querySelector('input[name="documents"][value="Certidao de Nascimento dos Filhos"]');
-            const vacinaFilhosCheckbox = document.querySelector('input[name="documents"][value="Cartao de Vacina dos Filhos"]');
+            countField.style.display = 'none';
+            documentsField.style.display = 'none';
+            oldChildrenField.style.display = 'none';
+            // Limpa os documentos dos filhos
+            document.getElementById('children-count').value = '0';
+            document.getElementById('children-documents-container').innerHTML = '';
+        }
+    }
+
+    generateChildrenDocumentsFields() {
+        const count = parseInt(document.getElementById('children-count').value);
+        const container = document.getElementById('children-documents-container');
+        const documentsField = document.getElementById('children-documents-field');
+        
+        if (count > 0) {
+            documentsField.style.display = 'block';
+            container.innerHTML = '';
             
-            if (cpfFilhosCheckbox) cpfFilhosCheckbox.checked = false;
-            if (certidaoFilhosCheckbox) certidaoFilhosCheckbox.checked = false;
-            if (vacinaFilhosCheckbox) vacinaFilhosCheckbox.checked = false;
+            for (let i = 1; i <= count; i++) {
+                const childHtml = `
+                    <div class="child-documents-section">
+                        <h4 style="margin-bottom: 10px; color: var(--primary-color);">
+                            <i class="fas fa-child"></i> Filho ${i}
+                        </h4>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="child-${i}-documents" value="CPF do Filho ${i}"> CPF do Filho ${i}</label>
+                            <label><input type="checkbox" name="child-${i}-documents" value="Certidão de Nascimento do Filho ${i}"> Certidão de Nascimento do Filho ${i}</label>
+                            <label><input type="checkbox" name="child-${i}-documents" value="Cartão de Vacina do Filho ${i}"> Cartão de Vacina do Filho ${i}</label>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += childHtml;
+            }
+        } else {
+            documentsField.style.display = 'none';
+            container.innerHTML = '';
         }
     }
 
@@ -552,17 +609,20 @@ class DocumentVerificationSystem {
     }
 
     exportCSV() {
-        const headers = ['Nome', 'Gênero', 'Tem Filhos', 'Documentos Entregues', 'Documentos Exigidos', 'Status'];
+        const headers = ['Nome', 'Gênero', 'Tem Filhos', 'Quantidade de Filhos', 'Documentos Entregues', 'Documentos Exigidos', 'Status', 'Documentos Faltantes'];
         
         const csvData = this.candidates.map(candidate => {
             const status = this.calculateStatus(candidate);
+            const missingDocs = status.missing.length > 0 ? status.missing.join('; ') : 'Nenhum';
             return [
                 candidate.name,
                 candidate.gender,
                 candidate.hasChildren ? 'Sim' : 'Não',
+                candidate.childrenCount || 0,
                 status.delivered,
                 status.total,
-                status.isComplete ? 'COMPLETO' : 'INCOMPLETO'
+                status.isComplete ? 'COMPLETO' : 'INCOMPLETO',
+                missingDocs
             ];
         });
 
@@ -581,7 +641,7 @@ class DocumentVerificationSystem {
     resetData() {
         if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita!')) {
             localStorage.removeItem('rh_candidates');
-            this.candidates = this.generateSampleData();
+            this.candidates = [];
             this.saveData();
             this.render();
             this.showToast('Todos os dados foram resetados!', 'info');
@@ -590,8 +650,180 @@ class DocumentVerificationSystem {
 
     // ==================== COMUNICAÇÃO ====================
     
-    printPendingList() {
-        window.print();
+    showPrintModal() {
+        const incompleteCandidates = this.candidates.filter(c => !this.calculateStatus(c).isComplete);
+        const modalBody = document.getElementById('print-modal-body');
+        
+        modalBody.innerHTML = `
+            <div class="print-header">
+                <h1>Lista de Pendências de Documentos</h1>
+                <div class="print-date">Departamento de RH - ${new Date().toLocaleDateString('pt-BR')}</div>
+            </div>
+            
+            <div class="print-summary">
+                <div class="total">Total de candidatos com pendências: <strong>${incompleteCandidates.length}</strong></div>
+            </div>
+            
+            ${incompleteCandidates.length === 0 ? 
+                '<div class="print-no-pending">✅ Todos os candidatos estão com a documentação completa!</div>' : 
+                incompleteCandidates.map((candidate, index) => {
+                    const status = this.calculateStatus(candidate);
+                    return `
+                        <div class="print-candidate">
+                            <div class="print-candidate-name">${index + 1}. ${candidate.name}</div>
+                            <div class="print-missing-docs">
+                                <strong>Documentos Faltantes:</strong><br>
+                                ${status.missing.join('<br>')}
+                            </div>
+                        </div>
+                    `;
+                }).join('')
+            }
+            
+            <div class="print-footer">
+                Sistema de Verificação de Documentos - RH
+            </div>
+        `;
+        
+        document.getElementById('print-modal').style.display = 'flex';
+    }
+    
+    hidePrintModal() {
+        document.getElementById('print-modal').style.display = 'none';
+    }
+    
+    executePrint() {
+        // Cria um iframe oculto para impressão
+        const printFrame = document.createElement('iframe');
+        printFrame.style.display = 'none';
+        printFrame.style.position = 'absolute';
+        printFrame.style.width = '0';
+        printFrame.style.height = '0';
+        printFrame.style.border = 'none';
+        document.body.appendChild(printFrame);
+        
+        const frameDoc = printFrame.contentWindow.document;
+        const incompleteCandidates = this.candidates.filter(c => !this.calculateStatus(c).isComplete);
+        
+        frameDoc.open();
+        frameDoc.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Lista de Pendências - RH</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                        color: #333;
+                    }
+                    .header {
+                        text-align: center;
+                        border-bottom: 2px solid #10b981;
+                        padding-bottom: 15px;
+                        margin-bottom: 15px;
+                    }
+                    .header h1 {
+                        color: #10b981;
+                        margin: 0;
+                        font-size: 20px;
+                    }
+                    .date {
+                        color: #666;
+                        font-size: 12px;
+                        margin-top: 5px;
+                    }
+                    .summary {
+                        background: #f3f4f6;
+                        padding: 12px;
+                        border-radius: 6px;
+                        margin-bottom: 15px;
+                        text-align: center;
+                        font-size: 14px;
+                    }
+                    .candidate {
+                        border: 1px solid #e5e7eb;
+                        border-radius: 6px;
+                        padding: 12px;
+                        margin-bottom: 12px;
+                        page-break-inside: avoid;
+                    }
+                    .candidate-name {
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: #10b981;
+                        margin-bottom: 8px;
+                    }
+                    .missing-docs {
+                        color: #ef4444;
+                        font-size: 12px;
+                        line-height: 1.5;
+                    }
+                    .missing-docs strong {
+                        color: #333;
+                    }
+                    .no-pending {
+                        text-align: center;
+                        padding: 30px;
+                        color: #10b981;
+                        font-size: 14px;
+                    }
+                    .footer {
+                        margin-top: 20px;
+                        padding-top: 10px;
+                        border-top: 1px solid #e5e7eb;
+                        text-align: center;
+                        font-size: 10px;
+                        color: #999;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Lista de Pendências de Documentos</h1>
+                    <div class="date">Departamento de RH - ${new Date().toLocaleDateString('pt-BR')}</div>
+                </div>
+                
+                <div class="summary">
+                    <strong>Total de candidatos com pendências:</strong> ${incompleteCandidates.length}
+                </div>
+                
+                ${incompleteCandidates.length === 0 ? 
+                    '<div class="no-pending">Todos os candidatos estão com a documentação completa!</div>' : 
+                    incompleteCandidates.map((candidate, index) => {
+                        const status = this.calculateStatus(candidate);
+                        return `
+                            <div class="candidate">
+                                <div class="candidate-name">${index + 1}. ${candidate.name}</div>
+                                <div class="missing-docs">
+                                    <strong>Documentos Faltantes:</strong><br>
+                                    ${status.missing.join('<br>')}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')
+                }
+                
+                <div class="footer">
+                    Sistema de Verificação de Documentos - RH
+                </div>
+            </body>
+            </html>
+        `);
+        frameDoc.close();
+        
+        // Espera carregar e imprime
+        printFrame.onload = function() {
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+        };
+        
+        // Remove o iframe após impressão
+        setTimeout(() => {
+            document.body.removeChild(printFrame);
+        }, 1000);
+        
+        this.hidePrintModal();
     }
 
     copyMessage() {
