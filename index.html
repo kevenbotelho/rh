@@ -42,6 +42,9 @@
             <button class="nav-btn" data-section="data-management">
                 <i class="fas fa-database"></i> Gestão de Dados
             </button>
+            <button class="nav-btn" data-section="contracts">
+                <i class="fas fa-file-signature"></i> Contratos
+            </button>
         </nav>
 
         <!-- Dashboard Section -->
@@ -254,6 +257,44 @@
                             <i class="fas fa-envelope"></i> Email
                         </button>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contracts Section -->
+        <section id="contracts" class="section">
+            <div class="section-header">
+                <h2>Verificação de Contratos</h2>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="app.showAddContractModal()">
+                        <i class="fas fa-plus"></i> Novo Contrato
+                    </button>
+                    <div class="search-container">
+                        <input type="text" id="contracts-search-input" placeholder="Buscar por nome...">
+                        <button class="btn btn-secondary" id="clear-contracts-search">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Páginas</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contracts-table">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+                <div id="no-contracts-results" class="no-results" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <p>Nenhum contrato encontrado</p>
                 </div>
             </div>
         </section>

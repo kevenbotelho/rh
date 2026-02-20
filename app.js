@@ -4,12 +4,31 @@
 class DocumentVerificationSystem {
     constructor() {
         this.candidates = [];
+        this.contracts = [];
         this.currentEditId = null;
         this.currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Páginas obrigatórias do contrato
+        this.requiredContractPages = [
+            'REGISTRO DE EMPREGADO',
+            'CONTRATO DE TRABALHO A TÍTULO DE EXPERIÊNCIA',
+            'DECLARAÇÃO PARA VALE-TRANSPORTE',
+            'PÁGINA SEM TITULO - CIENTE DOS PREJUIZOS SEREM DESCONTADOS DO SALARIO',
+            'TERMO DE RECEBIMENTO DO CRACHÁ DE IDENTIFICAÇÃO FUNCIONAL',
+            'CRACHA',
+            'ANEXO I AVISO DE PRIVACIDADE AO COLABORADOR',
+            'ANEXO I AVISO DE PRIVACIDADE AO COLABORADOR 2',
+            'ANEXO I AVISO DE PRIVACIDADE AO COLABORADOR 3',
+            'ADITIVO AO CONTRATO DE TRABALHO',
+            'ADITIVO AO CONTRATO DE TRABALHO 2',
+            'ANEXO II TERMO DE CONFIDENCIALIDADE',
+            'COLABORADOR'
+        ];
         
         this.initializeEventListeners();
         this.loadTheme();
         this.loadData();
+        this.loadContractsData();
         this.render();
     }
 
@@ -39,6 +58,10 @@ class DocumentVerificationSystem {
         // Busca
         document.getElementById('search-input').addEventListener('input', (e) => this.handleSearch(e.target.value));
         document.getElementById('clear-search').addEventListener('click', () => this.clearSearch());
+        
+        // Busca Contratos
+        document.getElementById('contracts-search-input').addEventListener('input', (e) => this.handleContractsSearch(e.target.value));
+        document.getElementById('clear-contracts-search').addEventListener('click', () => this.clearContractsSearch());
         
         // Gestão de Dados
         document.getElementById('backup-data').addEventListener('click', () => this.backupData());
@@ -84,6 +107,311 @@ class DocumentVerificationSystem {
 
     generateId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    // ==================== CONTRATOS - GESTÃO DE DADOS ====================
+    
+    loadContractsData() {
+        const savedData = localStorage.getItem('rh_contracts');
+        if (savedData) {
+            try {
+                this.contracts = JSON.parse(savedData);
+            } catch (e) {
+                console.error('Erro ao carregar dados de contratos:', e);
+                this.contracts = [];
+            }
+        } else {
+            this.contracts = [];
+        }
+        this.renderContractsTable();
+    }
+
+    saveContractsData() {
+        localStorage.setItem('rh_contracts', JSON.stringify(this.contracts));
+        this.showToast('Dados de contratos salvos com sucesso!', 'success');
+    }
+
+    calculateContractStatus(contract) {
+        const deliveredPages = contract.pages ? contract.pages.length : 0;
+        const totalRequired = this.requiredContractPages.length;
+        
+        const percentage = totalRequired > 0 ? Math.round((deliveredPages / totalRequired) * 100) : 0;
+        
+        return {
+            percentage,
+            isComplete: percentage === 100,
+            delivered: deliveredPages,
+            total: totalRequired,
+            missing: this.requiredContractPages.filter(page => !contract.pages.includes(page))
+        };
+    }
+
+    // ==================== CONTRATOS - INTERFACE ====================
+    
+    renderContractsTable(searchTerm = '') {
+        const tbody = document.getElementById('contracts-table');
+        const noResults = document.getElementById('no-contracts-results');
+        let filteredContracts = this.contracts;
+
+        if (searchTerm) {
+            filteredContracts = this.contracts.filter(contract => 
+                contract.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        if (filteredContracts.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-file-signature" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                        <p style="color: var(--text-secondary);">Nenhum contrato cadastrado</p>
+                        <button class="btn btn-primary" onclick="app.showAddContractModal()">
+                            <i class="fas fa-plus"></i> Adicionar Contrato
+                        </button>
+                    </td>
+                </tr>
+            `;
+            noResults.style.display = 'none';
+            return;
+        }
+
+        noResults.style.display = 'none';
+        tbody.innerHTML = filteredContracts.map(contract => {
+            const status = this.calculateContractStatus(contract);
+            const statusClass = status.isComplete ? 'status-complete' : 'status-incomplete';
+            const statusText = status.isComplete ? 'COMPLETO' : 'INCOMPLETO';
+            
+            return `
+                <tr>
+                    <td>
+                        <div>
+                            <strong>${contract.name}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${status.percentage}%"></div>
+                            </div>
+                            <span class="progress-text">${status.delivered}/${status.total}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">
+                            <i class="fas fa-${status.isComplete ? 'check' : 'exclamation-triangle'}"></i>
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="app.editContract('${contract.id}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="app.copyMissingPages('${contract.id}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="app.deleteContract('${contract.id}')">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // ==================== CONTRATOS - BUSCA ====================
+    
+    handleContractsSearch(term) {
+        this.renderContractsTable(term);
+    }
+
+    clearContractsSearch() {
+        document.getElementById('contracts-search-input').value = '';
+        this.renderContractsTable();
+    }
+
+    // ==================== CONTRATOS - AÇÕES ====================
+    
+    showAddContractModal() {
+        const modalHtml = this.generateContractModal();
+        
+        // Remove modal existente se houver
+        const existingModal = document.getElementById('contract-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Cria o modal
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'contract-modal';
+        modalDiv.className = 'modal';
+        modalDiv.innerHTML = modalDiv.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2 id="contract-modal-title">Novo Contrato</h2>
+                    <button class="modal-close" onclick="app.closeContractModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="contract-form">
+                        <input type="hidden" id="contract-id">
+                        <div class="form-group">
+                            <label for="contract-name">Nome do Colaborador *</label>
+                            <input type="text" id="contract-name" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                        </div>
+                        <div class="form-section-title">Páginas do Contrato</div>
+                        <div class="checkbox-grid" id="contract-pages-grid">
+                            ${this.requiredContractPages.map(page => `
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">
+                                    <input type="checkbox" name="contract-pages" value="${page}">
+                                    <span style="font-size: 13px;">${page}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="app.closeContractModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="app.saveContract()">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modalDiv);
+        modalDiv.style.display = 'flex';
+    }
+
+    generateContractModal() {
+        return '';
+    }
+
+    closeContractModal() {
+        const modal = document.getElementById('contract-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    saveContract() {
+        const id = document.getElementById('contract-id').value;
+        const name = document.getElementById('contract-name').value.trim();
+        
+        if (!name) {
+            this.showToast('Por favor, preencha o nome do colaborador!', 'error');
+            return;
+        }
+
+        const pages = [];
+        document.querySelectorAll('input[name="contract-pages"]:checked').forEach(cb => {
+            pages.push(cb.value);
+        });
+
+        if (id) {
+            // Editar
+            const index = this.contracts.findIndex(c => c.id === id);
+            if (index !== -1) {
+                this.contracts[index] = { ...this.contracts[index], name, pages };
+                this.showToast('Contrato atualizado com sucesso!', 'success');
+            }
+        } else {
+            // Novo
+            const newContract = {
+                id: this.generateId(),
+                name,
+                pages,
+                createdAt: new Date().toISOString()
+            };
+            this.contracts.push(newContract);
+            this.showToast('Contrato cadastrado com sucesso!', 'success');
+        }
+
+        this.saveContractsData();
+        this.renderContractsTable();
+        this.closeContractModal();
+    }
+
+    editContract(id) {
+        const contract = this.contracts.find(c => c.id === id);
+        if (!contract) return;
+
+        // Remove modal existente se houver
+        const existingModal = document.getElementById('contract-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Preenche os dados no formulário antes de mostrar o modal
+        this.currentEditContractId = id;
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'contract-modal';
+        modalDiv.className = 'modal';
+        modalDiv.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>Editar Contrato</h2>
+                    <button class="modal-close" onclick="app.closeContractModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="contract-form">
+                        <input type="hidden" id="contract-id" value="${contract.id}">
+                        <div class="form-group">
+                            <label for="contract-name">Nome do Colaborador *</label>
+                            <input type="text" id="contract-name" value="${contract.name}" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                        </div>
+                        <div class="form-section-title">Páginas do Contrato</div>
+                        <div class="checkbox-grid" id="contract-pages-grid">
+                            ${this.requiredContractPages.map(page => `
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">
+                                    <input type="checkbox" name="contract-pages" value="${page}" ${contract.pages && contract.pages.includes(page) ? 'checked' : ''}>
+                                    <span style="font-size: 13px;">${page}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="app.closeContractModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="app.saveContract()">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modalDiv);
+        modalDiv.style.display = 'flex';
+    }
+
+    deleteContract(id) {
+        if (confirm('Tem certeza que deseja excluir este contrato?')) {
+            this.contracts = this.contracts.filter(c => c.id !== id);
+            this.saveContractsData();
+            this.renderContractsTable();
+            this.showToast('Contrato excluído com sucesso!', 'success');
+        }
+    }
+
+    copyMissingPages(id) {
+        const contract = this.contracts.find(c => c.id === id);
+        if (!contract) return;
+
+        const status = this.calculateContractStatus(contract);
+        let message = `Está faltando as seguintes páginas do contrato:\n\n`;
+
+        if (status.missing.length > 0) {
+            status.missing.forEach((page, index) => {
+                message += `• ${page}\n`;
+            });
+        } else {
+            message += `• Nenhuma página faltando!`;
+        }
+
+        navigator.clipboard.writeText(message).then(() => {
+            this.showToast('✅ Mensagem copiada para a área de transferência!', 'success');
+        }).catch(err => {
+            this.showToast('Erro ao copiar mensagem', 'error');
+        });
     }
 
     // ==================== LÓGICA DE NEGÓCIO ====================
