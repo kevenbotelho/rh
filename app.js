@@ -618,6 +618,11 @@ class DocumentVerificationSystem {
                 this.resetForm();
             }
         }
+        
+        // Atualiza a interface quando muda para o dashboard
+        if (sectionName === 'dashboard') {
+            this.render();
+        }
     }
 
     loadFormForEdit(id) {
