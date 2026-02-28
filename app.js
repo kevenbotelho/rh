@@ -397,7 +397,7 @@ class DocumentVerificationSystem {
         if (!contract) return;
 
         const status = this.calculateContractStatus(contract);
-        let message = `Está faltando as seguintes páginas do contrato:\n\n`;
+        let message = `Está faltando as seguintes páginas do contrato:\n`;
 
         if (status.missing.length > 0) {
             status.missing.forEach((page, index) => {
@@ -434,19 +434,19 @@ class DocumentVerificationSystem {
 
     getRequiredDocuments(candidate) {
         let docs = [
-            'Entrevista Online',
-            'Curriculo',
+            'Responder a Entrevista Online (https://forms.gle/uQnG9nY1TE13FQY59)',
+            'Currículo',
             'RG',
             'CTPS Digital',
-            'Comprovante de Situacao Cadastral CPF',
-            'Certidao de Nascimento ou Casamento',
-            'Historico Escolar',
-            'Comprovante de Residencia',
+            'Comprovante de Situação Cadastral CPF',
+            'Certidão de Nascimento ou Casamento',
+            'Comprovante de Escolaridade',
+            'Comprovante de Residência',
             'Carteira de Vacina',
-            'Cartao do SUS',
+            'Cartão do SUS',
             'PIS ou NIS ou NIT',
-            'Extrato Bancario',
-            'Quitacao Eleitoral'
+            'Extrato Bancário',
+            'Quitação Eleitoral'
         ];
 
         // Certificado de Alistamento é obrigatório apenas para homens
@@ -972,11 +972,25 @@ class DocumentVerificationSystem {
     }
 
     resetData() {
+        // Salvar o tema atual antes de limpar
+        const currentTheme = this.currentTheme;
+        
         if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita!')) {
+            // Limpar apenas os dados específicos de candidatos e contratos
             localStorage.removeItem('rh_candidates');
+            localStorage.removeItem('rh_contracts');
+            
+            // Resetar as variáveis locais
             this.candidates = [];
-            this.saveData();
+            this.contracts = [];
+            
+            // Salvar e aplicar o tema novamente
+            localStorage.setItem('theme', currentTheme);
+            this.loadTheme();
+            
+            // Atualizar a interface
             this.render();
+            this.renderContractsTable();
             this.showToast('Todos os dados foram resetados!', 'info');
         }
     }
@@ -1177,7 +1191,16 @@ class DocumentVerificationSystem {
 
         if (status.missing.length > 0) {
             status.missing.forEach((doc, index) => {
-                message += `• ${doc}\n`;
+                // Aplica formatação especial para documentos específicos
+                let formattedDoc = doc;
+                if (doc === 'Comprovante de Situação Cadastral CPF') {
+                    formattedDoc = 'Comprovante de Situação Cadastral CPF (Emitido através do site: https://servicos.receita.fazenda.gov.br/servicos/cpf/consultasituacao/consultapublica.asp)';
+                } else if (doc === 'Quitação Eleitoral') {
+                    formattedDoc = 'Quitação Eleitoral (Emitido através do site: https://www.tse.jus.br/servicos-eleitorais/autoatendimento-eleitoral#/certidoes-eleitor)';
+                } else if (doc === 'Extrato Bancário') {
+                    formattedDoc = 'Extrato Bancário (Banco do Brasil, Banpará ou Bradesco)';
+                }
+                message += `• ${formattedDoc}\n`;
             });
         } else {
             message += `• Nenhum documento faltando!`;
@@ -1214,6 +1237,189 @@ class DocumentVerificationSystem {
         this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
         localStorage.setItem('theme', this.currentTheme);
         this.loadTheme();
+    }
+
+    // ==================== 1º CONTATO - SERVENTE SEDUC ====================
+    
+    showServenteModal() {
+        document.getElementById('servente-modal').style.display = 'flex';
+    }
+
+    closeServenteModal() {
+        document.getElementById('servente-modal').style.display = 'none';
+    }
+
+    copyServenteMessage1() {
+        const message = `Olá, [NOME], tudo bem?
+Me chamo [SEU NOME], sou do RH da Diamond Service. 
+Estou entrando em contato para ofertar a vaga de *Servente*.
+
+Informações da Vaga:
+
+Para a vaga de *Servente*, na cidade de *BELÉM*, o salário base é de *R$ 1.621,00*, acrescido de benefício alimentação no valor de R$ 26,70 por dia trabalhado.
+
+O auxílio alimentação será disponibilizado por meio de cartão benefício (PLUXEE ou SODEXO), o qual deverá ser retirado na empresa (iremos convocar quando o cartão estiver disponível) ou diretamente para o posto de trabalho, conforme disponibilidade logística.
+
+Regime de trabalho:
+Horário de trabalho: *SEG a SEXT: 08:00 às 12:00 / 13:00 às 17:48*
+
+Você tem interesse na vaga?`;
+        
+        navigator.clipboard.writeText(message).then(() => {
+            this.showToast('✅ MENSAGEM 1 copiada para a área de transferência!', 'success');
+        }).catch(err => {
+            this.showToast('Erro ao copiar MENSAGEM 1', 'error');
+        });
+    }
+
+    copyServenteMessage2() {
+        const message = `Para dar continuidade à sua candidatura, solicitamos que realize a entrevista online por meio do link abaixo:
+
+👉 https://forms.gle/uQnG9nY1TE13FQY59
+
+Após o preenchimento da entrevista, você encontrará no próprio link as orientações sobre os documentos necessários para seguir no processo seletivo.
+
+Lembramos que a vacinação atualizada é um requisito importante para a contratação. Caso necessário, procure uma Unidade Básica de Saúde para regularizar sua caderneta vacinal.
+
+Por gentileza, poderia confirmar seu interesse respondendo a esta mensagem?
+Aguardamos seu retorno. 😊
+
+Me confirme por gentileza: 
+ENDEREÇO| Cidade | Estado | Rua/Avenida | Bairro |  CEP
+UNIFORME:  Tamanho : 
+Sapato:`;
+        
+        navigator.clipboard.writeText(message).then(() => {
+            this.showToast('✅ MENSAGEM 2 copiada para a área de transferência!', 'success');
+        }).catch(err => {
+            this.showToast('Erro ao copiar MENSAGEM 2', 'error');
+        });
+    }
+
+    copyServenteMessage3() {
+        const message = `Lembramos que, após concluir o preenchimento das informações no link, será necessário encaminhar a documentação solicitada na imagem. Todos os documentos devem ser enviados em um único arquivo, no formato PDF.`;
+        
+        navigator.clipboard.writeText(message).then(() => {
+            this.showToast('✅ MENSAGEM 3 copiada para a área de transferência!', 'success');
+        }).catch(err => {
+            this.showToast('Erro ao copiar MENSAGEM 3', 'error');
+        });
+    }
+
+    async copyServenteImage() {
+        try {
+            // Primeiro, tenta usar a API Clipboard moderna
+            try {
+                const response = await fetch('images/checklist-admissao.jpeg');
+                const blob = await response.blob();
+                
+                // Verifica se a API Clipboard suporta imagens
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    const clipboardItem = new ClipboardItem({ 'image/jpeg': blob });
+                    await navigator.clipboard.write([clipboardItem]);
+                    this.showToast('✅ Imagem do checklist copiada para a área de transferência!', 'success');
+                    return;
+                }
+            } catch (clipboardError) {
+                console.log('API Clipboard não suportada ou falhou:', clipboardError);
+            }
+
+            // Se a API Clipboard falhar, cria um canvas para copiar a imagem
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = 'images/checklist-admissao.jpeg';
+            
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+
+            // Cria um canvas com o tamanho da imagem
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Desenha a imagem no canvas
+            ctx.drawImage(img, 0, 0);
+            
+            // Converte para blob
+            canvas.toBlob(async (blob) => {
+                try {
+                    // Tenta novamente com a API Clipboard
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        const clipboardItem = new ClipboardItem({ 'image/png': blob });
+                        await navigator.clipboard.write([clipboardItem]);
+                        this.showToast('✅ Imagem do checklist copiada para a área de transferência!', 'success');
+                    } else {
+                        // Se ainda não funcionar, cria um fallback
+                        this.showToast('⚠️ Copiar imagem direto não é suportado. Clique com o botão direito na imagem abaixo para salvar.', 'info');
+                        this.showImageFallback(img);
+                    }
+                } catch (error) {
+                    console.error('Erro ao copiar imagem via canvas:', error);
+                    this.showToast('⚠️ Copiar imagem direto não é suportado. Clique com o botão direito na imagem abaixo para salvar.', 'info');
+                    this.showImageFallback(img);
+                }
+            }, 'image/png');
+
+        } catch (error) {
+            console.error('Erro ao carregar imagem:', error);
+            this.showToast('Erro ao carregar a imagem. Por favor, tente novamente.', 'error');
+        }
+    }
+
+    showImageFallback(img) {
+        // Cria um modal com a imagem para download
+        const modalHtml = `
+            <div class="modal" id="image-fallback-modal" style="display: flex;">
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2>Imagem do Checklist</h2>
+                        <button class="modal-close" onclick="app.closeImageFallbackModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Para usar esta imagem, clique com o botão direito e escolha "Salvar imagem como..."</p>
+                        <div style="text-align: center; margin: 20px 0;">
+                            <img src="${img.src}" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                        </div>
+                        <div style="text-align: center;">
+                            <button class="btn btn-primary" onclick="app.downloadImage('${img.src}')">
+                                <i class="fas fa-download"></i> Download da Imagem
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="app.closeImageFallbackModal()">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove modal existente se houver
+        const existingModal = document.getElementById('image-fallback-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    closeImageFallbackModal() {
+        const modal = document.getElementById('image-fallback-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    downloadImage(imageSrc) {
+        const link = document.createElement('a');
+        link.href = imageSrc;
+        link.download = 'checklist-admissao.jpeg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.showToast('✅ Download iniciado!', 'success');
     }
 
     // ==================== UTILITÁRIOS ====================

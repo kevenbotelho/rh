@@ -39,11 +39,14 @@
             <button class="nav-btn" data-section="form">
                 <i class="fas fa-plus-circle"></i> Novo Cadastro
             </button>
-            <button class="nav-btn" data-section="data-management">
-                <i class="fas fa-database"></i> Gestão de Dados
-            </button>
             <button class="nav-btn" data-section="contracts">
                 <i class="fas fa-file-signature"></i> Contratos
+            </button>
+            <button class="nav-btn" data-section="first-contact">
+                <i class="fas fa-comments"></i> 1º Contato
+            </button>
+            <button class="nav-btn" data-section="data-management">
+                <i class="fas fa-database"></i> Gestão de Dados
             </button>
         </nav>
 
@@ -152,19 +155,19 @@
                     <div class="form-section-title">Checklist de Documentos</div>
                     <div class="checkbox-grid">
                         <label><input type="checkbox" name="documents" value="Entrevista Online"> Entrevista Online</label>
-                        <label><input type="checkbox" name="documents" value="Curriculo"> Currículo</label>
+                        <label><input type="checkbox" name="documents" value="Currículo"> Currículo</label>
                         <label><input type="checkbox" name="documents" value="RG"> RG</label>
                         <label><input type="checkbox" name="documents" value="CTPS Digital"> CTPS Digital</label>
-                        <label><input type="checkbox" name="documents" value="Comprovante de Situacao Cadastral CPF"> Comprovante de Situação Cadastral CPF</label>
-                        <label><input type="checkbox" name="documents" value="Certidao de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
-                        <label><input type="checkbox" name="documents" value="Historico Escolar"> Histórico Escolar</label>
-                        <label><input type="checkbox" name="documents" value="Comprovante de Residencia"> Comprovante de Residência</label>
+                        <label><input type="checkbox" name="documents" value="Comprovante de Situacao Cadastral CPF"> Comprovante de Situação Cadastral CPF </label>
+                        <label><input type="checkbox" name="documents" value="Certidão de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
+                        <label><input type="checkbox" name="documents" value="Histórico Escolar"> Comprovante de escolaridade</label>
+                        <label><input type="checkbox" name="documents" value="Comprovante de Residência"> Comprovante de Residência (De até 3 meses atrás)</label>
                         <label><input type="checkbox" name="documents" value="Certificado de Alistamento"> Certificado de Alistamento</label>
                         <label><input type="checkbox" name="documents" value="Carteira de Vacina"> Carteira de Vacina</label>
-                        <label><input type="checkbox" name="documents" value="Cartao do SUS"> Cartão do SUS</label>
+                        <label><input type="checkbox" name="documents" value="Cartão do SUS"> Cartão do SUS</label>
                         <label><input type="checkbox" name="documents" value="PIS ou NIS ou NIT"> PIS ou NIS ou NIT</label>
-                        <label><input type="checkbox" name="documents" value="Extrato Bancario"> Extrato bancário</label>
-                        <label><input type="checkbox" name="documents" value="Quitacao Eleitoral"> Quitação Eleitoral</label>
+                        <label><input type="checkbox" name="documents" value="Extrato Bancário"> Extrato Bancário (Banco do Brasil, Banpará ou Bradesco)</label>
+                        <label><input type="checkbox" name="documents" value="Quitação Eleitoral"> Quitação Eleitoral</label>
                     </div>
                 </div>
             </form>
@@ -298,10 +301,91 @@
                 </div>
             </div>
         </section>
+
+        <!-- First Contact Section -->
+        <section id="first-contact" class="section">
+            <div class="section-header">
+                <h2>1º Contato</h2>
+                <p>Selecione a vaga para gerar mensagens de contato</p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <button class="btn btn-primary contact-btn" onclick="app.showServenteModal()">
+                        <i class="fas fa-hammer"></i> SERVENTE - SEDUC
+                    </button>
+                </div>
+                <div class="contact-card">
+                    <button class="btn btn-secondary contact-btn disabled" disabled>
+                        <i class="fas fa-car"></i> MOTORISTA
+                    </button>
+                </div>
+                <div class="contact-card">
+                    <button class="btn btn-secondary contact-btn disabled" disabled>
+                        <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO I
+                    </button>
+                </div>
+                <div class="contact-card">
+                    <button class="btn btn-secondary contact-btn disabled" disabled>
+                        <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO II
+                    </button>
+                </div>
+                <div class="contact-card">
+                    <button class="btn btn-secondary contact-btn disabled" disabled>
+                        <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO III
+                    </button>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
+
+    <!-- Servente Modal -->
+    <div id="servente-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Servente - SEDUC</h2>
+                <button class="modal-close" onclick="app.closeServenteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="message-options">
+                    <div class="message-option">
+                        <h4>MENSAGEM 1</h4>
+                        <p>Oferta de vaga com detalhes salariais e horário</p>
+                        <button class="btn btn-primary" onclick="app.copyServenteMessage1()">
+                            <i class="fas fa-copy"></i> Copiar Mensagem
+                        </button>
+                    </div>
+                    <div class="message-option">
+                        <h4>MENSAGEM 2</h4>
+                        <p>Entrevista online e solicitação de documentos</p>
+                        <button class="btn btn-primary" onclick="app.copyServenteMessage2()">
+                            <i class="fas fa-copy"></i> Copiar Mensagem
+                        </button>
+                    </div>
+                    <div class="message-option">
+                        <h4>MENSAGEM 3</h4>
+                        <p>Lembrete sobre documentação necessária</p>
+                        <button class="btn btn-primary" onclick="app.copyServenteMessage3()">
+                            <i class="fas fa-copy"></i> Copiar Mensagem
+                        </button>
+                    </div>
+                    <div class="message-option">
+                        <h4>IMAGEM CHECKLIST</h4>
+                        <p>Checklist de documentos para admissão</p>
+                        <button class="btn btn-primary" onclick="app.copyServenteImage()">
+                            <i class="fas fa-image"></i> Copiar Imagem
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeServenteModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Print Modal -->
     <div id="print-modal" class="modal" style="display: none;">
