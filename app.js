@@ -434,13 +434,13 @@ class DocumentVerificationSystem {
 
     getRequiredDocuments(candidate) {
         let docs = [
-            'Responder a Entrevista Online (https://forms.gle/uQnG9nY1TE13FQY59)',
+            'Entrevista Online',
             'Currículo',
             'RG',
             'CTPS Digital',
-            'Comprovante de Situação Cadastral CPF',
+            'Comprovante de Situacao Cadastral CPF',
             'Certidão de Nascimento ou Casamento',
-            'Comprovante de Escolaridade',
+            'Histórico Escolar',
             'Comprovante de Residência',
             'Carteira de Vacina',
             'Cartão do SUS',
@@ -1193,7 +1193,7 @@ class DocumentVerificationSystem {
             status.missing.forEach((doc, index) => {
                 // Aplica formatação especial para documentos específicos
                 let formattedDoc = doc;
-                if (doc === 'Comprovante de Situação Cadastral CPF') {
+                if (doc === 'Comprovante de Situacao Cadastral CPF') {
                     formattedDoc = 'Comprovante de Situação Cadastral CPF (Emitido através do site: https://servicos.receita.fazenda.gov.br/servicos/cpf/consultasituacao/consultapublica.asp)';
                 } else if (doc === 'Quitação Eleitoral') {
                     formattedDoc = 'Quitação Eleitoral (Emitido através do site: https://www.tse.jus.br/servicos-eleitorais/autoatendimento-eleitoral#/certidoes-eleitor)';
