@@ -1273,6 +1273,20 @@ Você tem interesse na vaga?`;
     }
 
     copyServenteMessage2() {
+        const message = `Caso você tenha interesse na vaga, peço que preencha o formulário que irei lhe enviar para darmos continuidade ao processo seletivo.
+
+Estou à disposição para quaisquer dúvidas que possam surgir.
+
+Aguardo seu retorno! 😊`;
+        
+        navigator.clipboard.writeText(message).then(() => {
+            this.showToast('✅ MENSAGEM 2 copiada para a área de transferência!', 'success');
+        }).catch(err => {
+            this.showToast('Erro ao copiar MENSAGEM 2', 'error');
+        });
+    }
+
+    copyServenteMessage4() {
         const message = `Para dar continuidade à sua candidatura, solicitamos que realize a entrevista online por meio do link abaixo:
 
 👉 https://forms.gle/uQnG9nY1TE13FQY59
@@ -1290,19 +1304,19 @@ UNIFORME:  Tamanho :
 Sapato:`;
         
         navigator.clipboard.writeText(message).then(() => {
-            this.showToast('✅ MENSAGEM 2 copiada para a área de transferência!', 'success');
+            this.showToast('✅ MENSAGEM 4 copiada para a área de transferência!', 'success');
         }).catch(err => {
-            this.showToast('Erro ao copiar MENSAGEM 2', 'error');
+            this.showToast('Erro ao copiar MENSAGEM 4', 'error');
         });
     }
 
-    copyServenteMessage3() {
+    copyServenteMessage5() {
         const message = `Lembramos que, após concluir o preenchimento das informações no link, será necessário encaminhar a documentação solicitada na imagem. Todos os documentos devem ser enviados em um único arquivo, no formato PDF.`;
         
         navigator.clipboard.writeText(message).then(() => {
-            this.showToast('✅ MENSAGEM 3 copiada para a área de transferência!', 'success');
+            this.showToast('✅ MENSAGEM 5 copiada para a área de transferência!', 'success');
         }).catch(err => {
-            this.showToast('Erro ao copiar MENSAGEM 3', 'error');
+            this.showToast('Erro ao copiar MENSAGEM 5', 'error');
         });
     }
 
