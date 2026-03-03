@@ -1148,6 +1148,57 @@ body {
     }
 }
 
+/* Servente Modal Layout - New Structure */
+#servente-modal .message-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: var(--spacing-md);
+    grid-template-areas: 
+        "left right"
+        "full full"
+        "bottom bottom";
+}
+
+#servente-modal .message-option-left {
+    grid-area: left;
+}
+
+#servente-modal .message-option-right {
+    grid-area: right;
+}
+
+#servente-modal .message-option-full {
+    grid-area: full;
+    display: flex;
+    flex-direction: column;
+}
+
+#servente-modal .message-option-bottom {
+    grid-area: bottom;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Checklist Actions - Botões dentro da MENSAGEM 4 */
+#servente-modal .checklist-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+#servente-modal .checklist-actions .btn {
+    width: 100%;
+    justify-content: center;
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Ajustes de altura para alinhar corretamente */
+#servente-modal .message-option-full {
+    min-height: 140px;
+}
+
 /* Responsive Design for Contact Grid */
 @media (max-width: 768px) {
     .contact-grid {
@@ -1156,6 +1207,16 @@ body {
     
     .message-options {
         grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto auto;
+        grid-template-areas: 
+            "left"
+            "right-group"
+            "bottom-left"
+            "bottom-right";
+    }
+    
+    .message-option-group {
+        flex-direction: column;
     }
     
     .contact-btn {

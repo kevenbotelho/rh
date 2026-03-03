@@ -39,6 +39,9 @@
             <button class="nav-btn" data-section="form">
                 <i class="fas fa-plus-circle"></i> Novo Cadastro
             </button>
+            <button class="nav-btn" data-section="jovem-aprendiz">
+                <i class="fas fa-user-graduate"></i> Jovem Aprendiz
+            </button>
             <button class="nav-btn" data-section="contracts">
                 <i class="fas fa-file-signature"></i> Contratos
             </button>
@@ -168,6 +171,190 @@
                         <label><input type="checkbox" name="documents" value="PIS ou NIS ou NIT"> PIS ou NIS ou NIT</label>
                         <label><input type="checkbox" name="documents" value="Extrato Bancário"> Extrato Bancário (Banco do Brasil, Banpará ou Bradesco)</label>
                         <label><input type="checkbox" name="documents" value="Quitação Eleitoral"> Quitação Eleitoral</label>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Jovem Aprendiz Section -->
+        <section id="jovem-aprendiz" class="section">
+            <div class="section-header">
+                <h2>Jovem Aprendiz</h2>
+                <div class="search-container">
+                    <input type="text" id="jovem-aprendiz-search-input" placeholder="Buscar por nome...">
+                    <button class="btn btn-secondary" id="clear-jovem-aprendiz-search">
+                        <i class="fas fa-times"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Documentos</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jovem-aprendiz-table">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+                <div id="no-jovem-aprendiz-results" class="no-results" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <p>Nenhum jovem aprendiz encontrado</p>
+                </div>
+            </div>
+
+            <div class="section-header" style="margin-top: var(--spacing-xl);">
+                <h2>Cadastro de Jovem Aprendiz</h2>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="cancel-jovem-aprendiz-form">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button class="btn btn-primary" id="save-jovem-aprendiz-form" form="jovem-aprendiz-form" type="submit">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </div>
+
+            <form id="jovem-aprendiz-form" class="form-container">
+                <input type="hidden" id="jovem-aprendiz-id">
+                
+                <!-- Basic Information Row -->
+                <div class="form-row">
+                    <div class="form-group flex-1">
+                        <label for="jovem-aprendiz-name">Nome Completo *</label>
+                        <input type="text" id="jovem-aprendiz-name" name="name" required>
+                    </div>
+
+                    <div class="form-group flex-1">
+                        <label for="jovem-aprendiz-gender">Gênero *</label>
+                        <select id="jovem-aprendiz-gender" name="gender" required>
+                            <option value="">Selecione...</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group flex-small">
+                        <label for="jovem-aprendiz-has-children">Possui Filhos?</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="jovem-aprendiz-has-children" name="hasChildren">
+                                Sim
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantidade de Filhos -->
+                <div id="jovem-aprendiz-children-count-field" class="form-row" style="display: none;">
+                    <div class="form-group flex-small">
+                        <label for="jovem-aprendiz-children-count">Quantos filhos?</label>
+                        <select id="jovem-aprendiz-children-count" name="childrenCount">
+                            <option value="0">Selecione...</option>
+                            <option value="1">1 filho</option>
+                            <option value="2">2 filhos</option>
+                            <option value="3">3 filhos</option>
+                            <option value="4">4 filhos</option>
+                            <option value="5">5 filhos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Documentos dos Filhos (Dinâmico) -->
+                <div id="jovem-aprendiz-children-documents-field" style="display: none;">
+                    <div class="form-section-title">Documentos dos Filhos</div>
+                    <div id="jovem-aprendiz-children-documents-container">
+                        <!-- Documentos de cada filho serão inseridos aqui -->
+                    </div>
+                </div>
+
+                <!-- Required Documents -->
+                <div class="form-section">
+                    <div class="form-section-title">Documentos Básicos</div>
+                    
+                    <!-- Campo para escolaridade -->
+                    <div class="form-row">
+                        <div class="form-group flex-small">
+                            <label for="completed-high-school">Terminou o Ensino Médio?</label>
+                            <select id="completed-high-school" name="completedHighSchool">
+                                <option value="">Selecione...</option>
+                                <option value="nao">Não</option>
+                                <option value="sim">Sim</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="documents" value="Currículo atualizado"> Currículo atualizado</label>
+                        <label><input type="checkbox" name="documents" value="RG (Carteira de Identidade) – frente e verso"> RG (Carteira de Identidade) – frente e verso</label>
+                        <label><input type="checkbox" name="documents" value="Comprovante de Situação Cadastral do CPF"> Comprovante de Situação Cadastral do CPF</label>
+                        <label><input type="checkbox" name="documents" value="Certidão de Quitação Eleitoral"> Certidão de Quitação Eleitoral</label>
+                        <label><input type="checkbox" name="documents" value="Certidão de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Trabalho Digital (todos os dados)"> Carteira de Trabalho Digital (todos os dados)</label>
+                        <label><input type="checkbox" name="documents" value="Comprovante de Endereço atualizado e legível"> Comprovante de Endereço atualizado e legível</label>
+                        <label><input type="checkbox" name="documents" value="PIS, NIT OU NIS"> PIS, NIT OU NIS</label>
+                        <label><input type="checkbox" name="documents" value="Extrato bancário (Banco do Brasil, Banpará ou Bradesco)"> Extrato bancário (Banco do Brasil, Banpará ou Bradesco)</label>
+                        
+                        <!-- Documentos educacionais (agora dentro de Documentos Básicos) -->
+                        <label id="declaracao-escolar-label">
+                            <input type="checkbox" name="documents" value="Declaração Escolar (se estiver cursando o Ensino Médio)">
+                            Declaração Escolar (se estiver cursando o Ensino Médio)
+                        </label>
+                        <label id="certificado-conclusao-label">
+                            <input type="checkbox" name="documents" value="Certificado de Conclusão do Ensino Médio (frente e verso)">
+                            Certificado de Conclusão do Ensino Médio (frente e verso)
+                        </label>
+                        <label id="atestado-conclusao-label">
+                            <input type="checkbox" name="documents" value="Atestado de Conclusão">
+                            Atestado de Conclusão
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Health & Safety Documents -->
+                <div class="form-section">
+                    <div class="form-section-title">Documentos para Fins de Saúde e Segurança</div>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="documents" value="Carteira Nacional de Saúde (SUS)"> Carteira Nacional de Saúde (SUS)</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Tétano"> Carteira de Vacinação contendo: Tétano</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Tríplice Viral"> Carteira de Vacinação contendo: Tríplice Viral</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Febre Amarela"> Carteira de Vacinação contendo: Febre Amarela</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Gripe"> Carteira de Vacinação contendo: Gripe</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Hepatite B"> Carteira de Vacinação contendo: Hepatite B</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: COVID-19"> Carteira de Vacinação contendo: COVID-19</label>
+                    </div>
+                </div>
+
+                <!-- Military Service Documents -->
+                <div class="form-section">
+                    <div class="form-section-title">Documentos Militares (Obrigatório para homens até 45 anos)</div>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="documents" value="Certificado de Reservista"> Certificado de Reservista</label>
+                    </div>
+                </div>
+
+                <!-- Dependent Documents -->
+                <div class="form-section">
+                    <div class="form-section-title">Documentos para Dependentes (se houver)</div>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="documents" value="Certidão de Nascimento dos filhos"> Certidão de Nascimento dos filhos</label>
+                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação atualizada dos filhos até 6 anos"> Carteira de Vacinação atualizada dos filhos até 6 anos</label>
+                        <label><input type="checkbox" name="documents" value="CPF dos dependentes (caso vá solicitar salário-família)"> CPF dos dependentes (caso vá solicitar salário-família)</label>
+                    </div>
+                </div>
+
+                <!-- Footer Message -->
+                <div class="form-section">
+                    <div class="form-section-title">⚠️ Atenção</div>
+                    <div style="background-color: var(--bg-color); padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.6;">
+                        Todas as cópias devem estar legíveis, sem rasuras.<br>
+                        Preferencialmente enviar em formato A4 (PDF).<br>
+                        Documentos ilegíveis poderão ser recusados, causando atraso no processo de admissão.
                     </div>
                 </div>
             </form>
@@ -351,35 +538,33 @@
             </div>
             <div class="modal-body">
                 <div class="message-options">
-                    <div class="message-option">
+                    <div class="message-option message-option-left">
                         <h4>MENSAGEM 1</h4>
                         <p>Oferta de vaga com detalhes salariais e horário</p>
                         <button class="btn btn-primary" onclick="app.copyServenteMessage1()">
                             <i class="fas fa-copy"></i> Copiar Mensagem
                         </button>
                     </div>
-                    <div class="message-option">
+                    <div class="message-option message-option-right">
                         <h4>MENSAGEM 2</h4>
                         <p>Caso você tenha interesse, peço que preencha o formulário que irei lhe enviar</p>
                         <button class="btn btn-primary" onclick="app.copyServenteMessage2()">
                             <i class="fas fa-copy"></i> Copiar Mensagem
                         </button>
                     </div>
-                    <div class="message-option">
-                        <h4>IMAGEM CHECKLIST</h4>
-                        <p>Checklist de documentos para admissão</p>
-                        <button class="btn btn-primary" onclick="app.copyServenteImage()">
-                            <i class="fas fa-image"></i> Copiar Imagem
-                        </button>
-                    </div>
-                    <div class="message-option">
+                    <div class="message-option message-option-full">
                         <h4>MENSAGEM 4</h4>
                         <p>Entrevista online e solicitação de documentos</p>
-                        <button class="btn btn-primary" onclick="app.copyServenteMessage4()">
-                            <i class="fas fa-copy"></i> Copiar Mensagem
-                        </button>
+                        <div class="checklist-actions">
+                            <button class="btn btn-primary" onclick="app.copyServenteImage()">
+                                <i class="fas fa-image"></i> Copiar Checklist
+                            </button>
+                            <button class="btn btn-primary" onclick="app.copyServenteMessage4()">
+                                <i class="fas fa-copy"></i> Copiar Mensagem
+                            </button>
+                        </div>
                     </div>
-                    <div class="message-option">
+                    <div class="message-option message-option-bottom">
                         <h4>MENSAGEM 5</h4>
                         <p>Lembrete sobre documentação necessária</p>
                         <button class="btn btn-primary" onclick="app.copyServenteMessage5()">

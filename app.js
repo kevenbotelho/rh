@@ -54,6 +54,20 @@ class DocumentVerificationSystem {
         
         document.getElementById('has-children').addEventListener('change', () => this.toggleChildrenDocsField());
         document.getElementById('children-count').addEventListener('change', () => this.generateChildrenDocumentsFields());
+
+        // Jovem Aprendiz Formulário
+        document.getElementById('jovem-aprendiz-form').addEventListener('submit', (e) => this.handleJovemAprendizFormSubmit(e));
+        document.getElementById('cancel-jovem-aprendiz-form').addEventListener('click', () => this.resetJovemAprendizForm());
+        
+        document.getElementById('jovem-aprendiz-has-children').addEventListener('change', () => this.toggleJovemAprendizChildrenDocsField());
+        document.getElementById('jovem-aprendiz-children-count').addEventListener('change', () => this.generateJovemAprendizChildrenDocumentsFields());
+        
+        // Campo de escolaridade
+        document.getElementById('completed-high-school').addEventListener('change', () => this.handleHighSchoolCompletionChange());
+        
+        // Busca Jovem Aprendiz
+        document.getElementById('jovem-aprendiz-search-input').addEventListener('input', (e) => this.handleJovemAprendizSearch(e.target.value));
+        document.getElementById('clear-jovem-aprendiz-search').addEventListener('click', () => this.clearJovemAprendizSearch());
         
         // Busca
         document.getElementById('search-input').addEventListener('input', (e) => this.handleSearch(e.target.value));
@@ -244,7 +258,7 @@ class DocumentVerificationSystem {
         const modalDiv = document.createElement('div');
         modalDiv.id = 'contract-modal';
         modalDiv.className = 'modal';
-        modalDiv.innerHTML = modalDiv.innerHTML = `
+        modalDiv.innerHTML = `
             <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
                     <h2 id="contract-modal-title">Novo Contrato</h2>
@@ -904,6 +918,325 @@ class DocumentVerificationSystem {
         this.renderCandidatesTable();
     }
 
+    // ==================== JOVEM APRENDIZ - BUSCA ====================
+    
+    handleJovemAprendizSearch(term) {
+        // Filtra apenas candidatos que estão na seção de jovem aprendiz
+        // Para simplificar, vamos considerar que todos os candidatos podem ser jovens aprendizes
+        // e a busca será feita no mesmo array de candidatos
+        this.renderJovemAprendizTable(term);
+    }
+
+    clearJovemAprendizSearch() {
+        document.getElementById('jovem-aprendiz-search-input').value = '';
+        this.renderJovemAprendizTable();
+    }
+
+    // ==================== JOVEM APRENDIZ - INTERFACE ====================
+    
+    renderJovemAprendizTable(searchTerm = '') {
+        const tbody = document.getElementById('jovem-aprendiz-table');
+        const noResults = document.getElementById('no-jovem-aprendiz-results');
+        let filteredCandidates = this.candidates;
+
+        if (searchTerm) {
+            filteredCandidates = this.candidates.filter(candidate => 
+                candidate.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        if (filteredCandidates.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-user-graduate" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                        <p style="color: var(--text-secondary);">Nenhum jovem aprendiz cadastrado</p>
+                        <button class="btn btn-primary" onclick="app.switchSection('jovem-aprendiz'); app.resetJovemAprendizForm();">
+                            <i class="fas fa-plus"></i> Cadastrar Jovem Aprendiz
+                        </button>
+                    </td>
+                </tr>
+            `;
+            noResults.style.display = 'none';
+            return;
+        }
+
+        noResults.style.display = 'none';
+        tbody.innerHTML = filteredCandidates.map(candidate => {
+            const status = this.calculateStatus(candidate);
+            const statusClass = status.isComplete ? 'status-complete' : 'status-incomplete';
+            const statusText = status.isComplete ? 'COMPLETO' : 'INCOMPLETO';
+            
+            return `
+                <tr>
+                    <td>
+                        <div>
+                            <strong>${candidate.name}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${status.percentage}%"></div>
+                            </div>
+                            <span class="progress-text">${status.delivered}/${status.total}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">
+                            <i class="fas fa-${status.isComplete ? 'check' : 'exclamation-triangle'}"></i>
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="app.editJovemAprendiz('${candidate.id}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="app.copyMissingDocs('${candidate.id}')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="app.deleteJovemAprendiz('${candidate.id}')">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // ==================== JOVEM APRENDIZ - FORMULÁRIO ====================
+    
+    handleJovemAprendizFormSubmit(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const hasChildren = document.getElementById('jovem-aprendiz-has-children').checked;
+        const childrenCount = parseInt(document.getElementById('jovem-aprendiz-children-count').value) || 0;
+        
+        const candidateData = {
+            name: formData.get('name'),
+            gender: formData.get('gender'),
+            hasChildren: hasChildren,
+            childrenCount: childrenCount,
+            documents: [],
+            createdAt: new Date().toISOString()
+        };
+
+        // Coleta documentos selecionados do jovem aprendiz
+        document.querySelectorAll('input[name="documents"]:checked').forEach(cb => {
+            candidateData.documents.push(cb.value);
+        });
+
+        // Coleta documentos de cada filho
+        if (hasChildren && childrenCount > 0) {
+            for (let i = 1; i <= childrenCount; i++) {
+                document.querySelectorAll(`input[name="child-${i}-documents"]:checked`).forEach(cb => {
+                    candidateData.documents.push(cb.value);
+                });
+            }
+        }
+
+        // Validação
+        if (!this.validateJovemAprendizForm(candidateData)) return;
+
+        // Salva o jovem aprendiz
+        this.addJovemAprendiz(candidateData);
+
+        // Volta para a lista de jovens aprendizes
+        this.switchSection('jovem-aprendiz');
+        this.renderJovemAprendizTable();
+    }
+
+    resetJovemAprendizForm() {
+        document.getElementById('jovem-aprendiz-form').reset();
+        document.getElementById('jovem-aprendiz-id').value = '';
+        document.getElementById('jovem-aprendiz-children-count-field').style.display = 'none';
+        document.getElementById('jovem-aprendiz-children-documents-field').style.display = 'none';
+        document.getElementById('jovem-aprendiz-children-documents-container').innerHTML = '';
+        document.getElementById('jovem-aprendiz-children-count').value = '0';
+        document.querySelectorAll('input[name="documents"]').forEach(cb => cb.checked = false);
+    }
+
+    toggleJovemAprendizChildrenDocsField() {
+        const hasChildren = document.getElementById('jovem-aprendiz-has-children').checked;
+        const countField = document.getElementById('jovem-aprendiz-children-count-field');
+        const documentsField = document.getElementById('jovem-aprendiz-children-documents-field');
+        
+        if (hasChildren) {
+            countField.style.display = 'block';
+        } else {
+            countField.style.display = 'none';
+            documentsField.style.display = 'none';
+            // Limpa os documentos dos filhos
+            document.getElementById('jovem-aprendiz-children-count').value = '0';
+            document.getElementById('jovem-aprendiz-children-documents-container').innerHTML = '';
+        }
+    }
+
+    generateJovemAprendizChildrenDocumentsFields() {
+        const count = parseInt(document.getElementById('jovem-aprendiz-children-count').value);
+        const container = document.getElementById('jovem-aprendiz-children-documents-container');
+        const documentsField = document.getElementById('jovem-aprendiz-children-documents-field');
+        
+        if (count > 0) {
+            documentsField.style.display = 'block';
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= count; i++) {
+                const childHtml = `
+                    <div class="child-documents-section">
+                        <h4 style="margin-bottom: 10px; color: var(--primary-color);">
+                            <i class="fas fa-child"></i> Filho ${i}
+                        </h4>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="child-${i}-documents" value="CPF do Filho ${i}"> CPF do Filho ${i}</label>
+                            <label><input type="checkbox" name="child-${i}-documents" value="Certidão de Nascimento do Filho ${i}"> Certidão de Nascimento do Filho ${i}</label>
+                            <label><input type="checkbox" name="child-${i}-documents" value="Cartão de Vacina do Filho ${i}"> Cartão de Vacina do Filho ${i}</label>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += childHtml;
+            }
+        } else {
+            documentsField.style.display = 'none';
+            container.innerHTML = '';
+        }
+    }
+
+    validateJovemAprendizForm(data) {
+        // Limpa mensagens de erro anteriores
+        this.clearValidationErrors();
+        
+        let isValid = true;
+        let errorMessage = '';
+
+        // Validação de campos obrigatórios
+        if (!data.name || data.name.trim() === '') {
+            this.showValidationError('jovem-aprendiz-name', 'Nome é obrigatório');
+            errorMessage = 'Por favor, preencha o nome do jovem aprendiz!';
+            isValid = false;
+        }
+
+        if (!data.gender || data.gender === '') {
+            this.showValidationError('jovem-aprendiz-gender', 'Gênero é obrigatório');
+            if (!errorMessage) errorMessage = 'Por favor, selecione o gênero do jovem aprendiz!';
+            isValid = false;
+        }
+
+        // Validação de documentos educacionais baseado na escolaridade
+        const completedHighSchool = document.getElementById('completed-high-school').value;
+        
+        if (completedHighSchool === '') {
+            this.showValidationError('completed-high-school', 'Escolaridade é obrigatória');
+            if (!errorMessage) errorMessage = 'Por favor, informe se terminou o Ensino Médio!';
+            isValid = false;
+        } else if (completedHighSchool === 'nao') {
+            // Se NÃO terminou o Ensino Médio, obrigatório: Declaração Escolar
+            const hasDeclaracaoEscolar = document.querySelector('input[name="documents"][value="Declaração Escolar (se estiver cursando o Ensino Médio)"]').checked;
+            
+            if (!hasDeclaracaoEscolar) {
+                this.showValidationError('declaracao-escolar-label', 'Declaração Escolar é obrigatória para quem não terminou o Ensino Médio');
+                if (!errorMessage) errorMessage = 'Para quem não terminou o Ensino Médio, é obrigatório apresentar a Declaração Escolar!';
+                isValid = false;
+            }
+        } else if (completedHighSchool === 'sim') {
+            // Se terminou o Ensino Médio, obrigatório: Certificado de Conclusão OU Atestado de Conclusão
+            const hasCertificadoConclusao = document.querySelector('input[name="documents"][value="Certificado de Conclusão do Ensino Médio (frente e verso)"]').checked;
+            const hasAtestadoConclusao = document.querySelector('input[name="documents"][value="Atestado de Conclusão"]').checked;
+            
+            if (!hasCertificadoConclusao && !hasAtestadoConclusao) {
+                this.showValidationError('certificado-conclusao-label', 'Certificado de Conclusão do Ensino Médio (frente e verso) ou Atestado de Conclusão é obrigatório para quem terminou o Ensino Médio');
+                if (!errorMessage) errorMessage = 'Para quem terminou o Ensino Médio, é obrigatório apresentar o Certificado de Conclusão do Ensino Médio (frente e verso) ou Atestado de Conclusão!';
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            this.showToast(errorMessage, 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    addJovemAprendiz(data) {
+        const newCandidate = {
+            ...data,
+            id: this.generateId()
+        };
+        
+        this.candidates.push(newCandidate);
+        this.saveData();
+        this.showToast('✅ Jovem Aprendiz cadastrado com sucesso!', 'success');
+        
+        // Reseta o formulário após o cadastro bem-sucedido
+        this.resetJovemAprendizForm();
+    }
+
+    editJovemAprendiz(id) {
+        const candidate = this.candidates.find(c => c.id === id);
+        if (!candidate) return;
+
+        // Preenche o formulário de jovem aprendiz
+        document.getElementById('jovem-aprendiz-name').value = candidate.name;
+        document.getElementById('jovem-aprendiz-gender').value = candidate.gender;
+        document.getElementById('jovem-aprendiz-has-children').checked = candidate.hasChildren;
+
+        // Marca documentos
+        document.querySelectorAll('input[name="documents"]').forEach(checkbox => {
+            checkbox.checked = candidate.documents.includes(checkbox.value);
+        });
+
+        // Atualiza campos condicionais
+        this.toggleJovemAprendizChildrenDocsField();
+        
+        // Carrega quantidade de filhos se tiver
+        const childrenCount = candidate.childrenCount || 0;
+        if (candidate.hasChildren && childrenCount > 0) {
+            document.getElementById('jovem-aprendiz-children-count').value = childrenCount;
+            this.generateJovemAprendizChildrenDocumentsFields();
+            
+            // Marca documentos de cada filho após os campos serem gerados
+            setTimeout(() => {
+                for (let i = 1; i <= childrenCount; i++) {
+                    document.querySelectorAll(`input[name="child-${i}-documents"]`).forEach(checkbox => {
+                        checkbox.checked = candidate.documents.includes(checkbox.value);
+                    });
+                }
+            }, 100);
+        }
+        
+        // Se tem filhos mas não tem childrenCount (dado antigo), assume 1 filho
+        if (candidate.hasChildren && !candidate.childrenCount) {
+            document.getElementById('jovem-aprendiz-children-count').value = 1;
+            this.generateJovemAprendizChildrenDocumentsFields();
+            
+            // Tenta marcar os documentos antigos se existirem
+            setTimeout(() => {
+                // Para dados antigos, tenta marcar "CPF dos Filhos", "Certidao...", "Cartao..."
+                const oldDocNames = ['CPF dos Filhos', 'Certidao de Nascimento dos Filhos', 'Cartao de Vacina dos Filhos'];
+                oldDocNames.forEach(docName => {
+                    const checkbox = document.querySelector(`input[name="child-1-documents"][value="${docName}"]`);
+                    if (checkbox) {
+                        checkbox.checked = candidate.documents.includes(docName);
+                    }
+                });
+            }, 100);
+        }
+
+        // Troca para a seção de formulário
+        this.switchSection('jovem-aprendiz');
+    }
+
+    deleteJovemAprendiz(id) {
+        if (confirm('Tem certeza que deseja excluir este jovem aprendiz?')) {
+            this.candidates = this.candidates.filter(c => c.id !== id);
+            this.saveData();
+            this.renderJovemAprendizTable();
+            this.showToast('Jovem Aprendiz excluído com sucesso!', 'success');
+        }
+    }
+
     // ==================== GESTÃO DE DADOS ====================
     
     backupData() {
@@ -1273,11 +1606,7 @@ Você tem interesse na vaga?`;
     }
 
     copyServenteMessage2() {
-        const message = `Caso você tenha interesse na vaga, peço que preencha o formulário que irei lhe enviar para darmos continuidade ao processo seletivo.
-
-Estou à disposição para quaisquer dúvidas que possam surgir.
-
-Aguardo seu retorno! 😊`;
+        const message = `Caso você tenha interesse na vaga, peço que preencha o formulário que irei lhe enviar para darmos continuidade ao processo seletivo.`;
         
         navigator.clipboard.writeText(message).then(() => {
             this.showToast('✅ MENSAGEM 2 copiada para a área de transferência!', 'success');
@@ -1447,6 +1776,55 @@ Sapato:`;
         setTimeout(() => {
             toast.classList.remove('show');
         }, 3000);
+    }
+
+    handleHighSchoolCompletionChange() {
+        const completedHighSchool = document.getElementById('completed-high-school').value;
+        
+        // Atualiza a interface baseado na escolha
+        if (completedHighSchool === 'nao') {
+            // Se NÃO terminou o Ensino Médio, destaca a Declaração Escolar
+            const declaracaoLabel = document.getElementById('declaracao-escolar-label');
+            if (declaracaoLabel) {
+                declaracaoLabel.style.fontWeight = 'bold';
+                declaracaoLabel.style.color = 'var(--primary-color)';
+            }
+            
+            // Remove destaque dos outros documentos
+            const certificadoLabel = document.getElementById('certificado-conclusao-label');
+            const atestadoLabel = document.getElementById('atestado-conclusao-label');
+            if (certificadoLabel) certificadoLabel.style.fontWeight = 'normal';
+            if (atestadoLabel) atestadoLabel.style.fontWeight = 'normal';
+        } else if (completedHighSchool === 'sim') {
+            // Se terminou o Ensino Médio, destaca os documentos de conclusão
+            const certificadoLabel = document.getElementById('certificado-conclusao-label');
+            const atestadoLabel = document.getElementById('atestado-conclusao-label');
+            if (certificadoLabel) {
+                certificadoLabel.style.fontWeight = 'bold';
+                certificadoLabel.style.color = 'var(--primary-color)';
+            }
+            if (atestadoLabel) {
+                atestadoLabel.style.fontWeight = 'bold';
+                atestadoLabel.style.color = 'var(--primary-color)';
+            }
+            
+            // Remove destaque da Declaração Escolar
+            const declaracaoLabel = document.getElementById('declaracao-escolar-label');
+            if (declaracaoLabel) declaracaoLabel.style.fontWeight = 'normal';
+        } else {
+            // Se não selecionou nada, remove todos os destaques
+            const labels = [
+                document.getElementById('declaracao-escolar-label'),
+                document.getElementById('certificado-conclusao-label'),
+                document.getElementById('atestado-conclusao-label')
+            ];
+            labels.forEach(label => {
+                if (label) {
+                    label.style.fontWeight = 'normal';
+                    label.style.color = 'inherit';
+                }
+            });
+        }
     }
 }
 
