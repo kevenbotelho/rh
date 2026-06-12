@@ -1224,3 +1224,17 @@ body {
         padding: var(--spacing-sm);
     }
 }
+div#site-novo{
+    background-color: #2dc366;
+    width: 100vw;
+    height: 100vh;
+}
+div#site-novo h1{
+    font-size: 30px;
+    text-align: center;
+    padding-top: 30px;
+}
+div#site-novo a{
+    display: block;
+    text-align: center;
+}

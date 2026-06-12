@@ -8,596 +8,552 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="app">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-id-card"></i> Sistema de Verificação de Documentos</h1>
-                <div class="header-actions">
-                    <button class="btn btn-secondary" id="theme-toggle">
-                        <i class="fas fa-moon"></i> <span id="theme-text">Dark Mode</span>
-                    </button>
-                    <div class="stats">
-                        <span class="stat-item">
-                            <i class="fas fa-users"></i>
-                            <span id="total-candidates">0</span> Candidatos
-                        </span>
-                        <span class="stat-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span id="completed-candidates">0</span> Completos
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Navigation -->
-        <nav class="nav">
-            <button class="nav-btn active" data-section="dashboard">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </button>
-            <button class="nav-btn" data-section="form">
-                <i class="fas fa-plus-circle"></i> Novo Cadastro
-            </button>
-            <button class="nav-btn" data-section="jovem-aprendiz">
-                <i class="fas fa-user-graduate"></i> Jovem Aprendiz
-            </button>
-            <button class="nav-btn" data-section="contracts">
-                <i class="fas fa-file-signature"></i> Contratos
-            </button>
-            <button class="nav-btn" data-section="first-contact">
-                <i class="fas fa-comments"></i> 1º Contato
-            </button>
-            <button class="nav-btn" data-section="data-management">
-                <i class="fas fa-database"></i> Gestão de Dados
-            </button>
-        </nav>
-
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="section active">
-            <div class="section-header">
-                <h2>Controle de Documentos</h2>
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Buscar por nome, CPF ou cargo...">
-                    <button class="btn btn-primary" id="clear-search">
-                        <i class="fas fa-times"></i> Limpar
-                    </button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Documentos</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="candidates-table">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
-                <div id="no-results" class="no-results" style="display: none;">
-                    <i class="fas fa-search"></i>
-                    <p>Nenhum candidato encontrado</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Form Section -->
-        <section id="form" class="section">
-            <div class="section-header">
-                <h2 id="form-title">Novo Cadastro</h2>
-                <div class="form-actions">
-                    <button class="btn btn-secondary" id="cancel-form">
-                        <i class="fas fa-times"></i> Cancelar
-                    </button>
-                    <button class="btn btn-primary" id="save-form" form="candidate-form" type="submit">
-                        <i class="fas fa-save"></i> Salvar (Enter)
-                    </button>
-                </div>
-            </div>
-
-            <form id="candidate-form" class="form-container">
-                <input type="hidden" id="candidate-id">
-                
-                <!-- Basic Information Row -->
-                <div class="form-row">
-                    <div class="form-group flex-1">
-                        <label for="name">Nome Completo *</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-
-                    <div class="form-group flex-1">
-                        <label for="gender">Gênero *</label>
-                        <select id="gender" name="gender" required>
-                            <option value="">Selecione...</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Feminino">Feminino</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group flex-small">
-                        <label for="has-children">Possui Filhos?</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="has-children" name="hasChildren">
-                                Sim
-                            </label>
+    <div style="display: none;">
+        <div class="app">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-content">
+                    <h1><i class="fas fa-id-card"></i> Sistema de Verificação de Documentos</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="theme-toggle">
+                            <i class="fas fa-moon"></i> <span id="theme-text">Dark Mode</span>
+                        </button>
+                        <div class="stats">
+                            <span class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span id="total-candidates">0</span> Candidatos
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span id="completed-candidates">0</span> Completos
+                            </span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Quantidade de Filhos -->
-                <div id="children-count-field" class="form-row" style="display: none;">
-                    <div class="form-group flex-small">
-                        <label for="children-count">Quantos filhos?</label>
-                        <select id="children-count" name="childrenCount">
-                            <option value="0">Selecione...</option>
-                            <option value="1">1 filho</option>
-                            <option value="2">2 filhos</option>
-                            <option value="3">3 filhos</option>
-                            <option value="4">4 filhos</option>
-                            <option value="5">5 filhos</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Documentos dos Filhos (Dinâmico) -->
-                <div id="children-documents-field" style="display: none;">
-                    <div class="form-section-title">Documentos dos Filhos</div>
-                    <div id="children-documents-container">
-                        <!-- Documentos de cada filho serão inseridos aqui -->
-                    </div>
-                </div>
-
-                <!-- Required Documents -->
-                <div class="form-section">
-                    <div class="form-section-title">Checklist de Documentos</div>
-                    <div class="checkbox-grid">
-                        <label><input type="checkbox" name="documents" value="Entrevista Online"> Entrevista Online</label>
-                        <label><input type="checkbox" name="documents" value="Currículo"> Currículo</label>
-                        <label><input type="checkbox" name="documents" value="RG"> RG</label>
-                        <label><input type="checkbox" name="documents" value="CTPS Digital"> CTPS Digital</label>
-                        <label><input type="checkbox" name="documents" value="Comprovante de Situacao Cadastral CPF"> Comprovante de Situação Cadastral CPF </label>
-                        <label><input type="checkbox" name="documents" value="Certidão de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
-                        <label><input type="checkbox" name="documents" value="Histórico Escolar"> Comprovante de escolaridade</label>
-                        <label><input type="checkbox" name="documents" value="Comprovante de Residência"> Comprovante de Residência (De até 3 meses atrás)</label>
-                        <label><input type="checkbox" name="documents" value="Certificado de Alistamento"> Certificado de Alistamento</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacina"> Carteira de Vacina</label>
-                        <label><input type="checkbox" name="documents" value="Cartão do SUS"> Cartão do SUS</label>
-                        <label><input type="checkbox" name="documents" value="PIS ou NIS ou NIT"> PIS ou NIS ou NIT</label>
-                        <label><input type="checkbox" name="documents" value="Extrato Bancário"> Extrato Bancário (Banco do Brasil, Banpará ou Bradesco)</label>
-                        <label><input type="checkbox" name="documents" value="Quitação Eleitoral"> Quitação Eleitoral</label>
-                    </div>
-                </div>
-            </form>
-        </section>
-
-        <!-- Jovem Aprendiz Section -->
-        <section id="jovem-aprendiz" class="section">
-            <div class="section-header">
-                <h2>Jovem Aprendiz</h2>
-                <div class="search-container">
-                    <input type="text" id="jovem-aprendiz-search-input" placeholder="Buscar por nome...">
-                    <button class="btn btn-secondary" id="clear-jovem-aprendiz-search">
-                        <i class="fas fa-times"></i> Limpar
-                    </button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Documentos</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="jovem-aprendiz-table">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
-                <div id="no-jovem-aprendiz-results" class="no-results" style="display: none;">
-                    <i class="fas fa-search"></i>
-                    <p>Nenhum jovem aprendiz encontrado</p>
-                </div>
-            </div>
-
-            <div class="section-header" style="margin-top: var(--spacing-xl);">
-                <h2>Cadastro de Jovem Aprendiz</h2>
-                <div class="form-actions">
-                    <button class="btn btn-secondary" id="cancel-jovem-aprendiz-form">
-                        <i class="fas fa-times"></i> Cancelar
-                    </button>
-                    <button class="btn btn-primary" id="save-jovem-aprendiz-form" form="jovem-aprendiz-form" type="submit">
-                        <i class="fas fa-save"></i> Salvar
-                    </button>
-                </div>
-            </div>
-
-            <form id="jovem-aprendiz-form" class="form-container">
-                <input type="hidden" id="jovem-aprendiz-id">
-                
-                <!-- Basic Information Row -->
-                <div class="form-row">
-                    <div class="form-group flex-1">
-                        <label for="jovem-aprendiz-name">Nome Completo *</label>
-                        <input type="text" id="jovem-aprendiz-name" name="name" required>
-                    </div>
-
-                    <div class="form-group flex-1">
-                        <label for="jovem-aprendiz-gender">Gênero *</label>
-                        <select id="jovem-aprendiz-gender" name="gender" required>
-                            <option value="">Selecione...</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Feminino">Feminino</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group flex-small">
-                        <label for="jovem-aprendiz-has-children">Possui Filhos?</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="jovem-aprendiz-has-children" name="hasChildren">
-                                Sim
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quantidade de Filhos -->
-                <div id="jovem-aprendiz-children-count-field" class="form-row" style="display: none;">
-                    <div class="form-group flex-small">
-                        <label for="jovem-aprendiz-children-count">Quantos filhos?</label>
-                        <select id="jovem-aprendiz-children-count" name="childrenCount">
-                            <option value="0">Selecione...</option>
-                            <option value="1">1 filho</option>
-                            <option value="2">2 filhos</option>
-                            <option value="3">3 filhos</option>
-                            <option value="4">4 filhos</option>
-                            <option value="5">5 filhos</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Documentos dos Filhos (Dinâmico) -->
-                <div id="jovem-aprendiz-children-documents-field" style="display: none;">
-                    <div class="form-section-title">Documentos dos Filhos</div>
-                    <div id="jovem-aprendiz-children-documents-container">
-                        <!-- Documentos de cada filho serão inseridos aqui -->
-                    </div>
-                </div>
-
-                <!-- Required Documents -->
-                <div class="form-section">
-                    <div class="form-section-title">Documentos Básicos</div>
-                    
-                    <!-- Campo para escolaridade -->
-                    <div class="form-row">
-                        <div class="form-group flex-small">
-                            <label for="completed-high-school">Terminou o Ensino Médio?</label>
-                            <select id="completed-high-school" name="completedHighSchool">
-                                <option value="">Selecione...</option>
-                                <option value="nao">Não</option>
-                                <option value="sim">Sim</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="checkbox-grid">
-                        <label><input type="checkbox" name="documents" value="Currículo atualizado"> Currículo atualizado</label>
-                        <label><input type="checkbox" name="documents" value="RG (Carteira de Identidade) – frente e verso"> RG (Carteira de Identidade) – frente e verso</label>
-                        <label><input type="checkbox" name="documents" value="Comprovante de Situação Cadastral do CPF"> Comprovante de Situação Cadastral do CPF</label>
-                        <label><input type="checkbox" name="documents" value="Certidão de Quitação Eleitoral"> Certidão de Quitação Eleitoral</label>
-                        <label><input type="checkbox" name="documents" value="Certidão de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Trabalho Digital (todos os dados)"> Carteira de Trabalho Digital (todos os dados)</label>
-                        <label><input type="checkbox" name="documents" value="Comprovante de Endereço atualizado e legível"> Comprovante de Endereço atualizado e legível</label>
-                        <label><input type="checkbox" name="documents" value="PIS, NIT OU NIS"> PIS, NIT OU NIS</label>
-                        <label><input type="checkbox" name="documents" value="Extrato bancário (Banco do Brasil, Banpará ou Bradesco)"> Extrato bancário (Banco do Brasil, Banpará ou Bradesco)</label>
-                        
-                        <!-- Documentos educacionais (agora dentro de Documentos Básicos) -->
-                        <label id="declaracao-escolar-label">
-                            <input type="checkbox" name="documents" value="Declaração Escolar (se estiver cursando o Ensino Médio)">
-                            Declaração Escolar (se estiver cursando o Ensino Médio)
-                        </label>
-                        <label id="certificado-conclusao-label">
-                            <input type="checkbox" name="documents" value="Certificado de Conclusão do Ensino Médio (frente e verso)">
-                            Certificado de Conclusão do Ensino Médio (frente e verso)
-                        </label>
-                        <label id="atestado-conclusao-label">
-                            <input type="checkbox" name="documents" value="Atestado de Conclusão">
-                            Atestado de Conclusão
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Health & Safety Documents -->
-                <div class="form-section">
-                    <div class="form-section-title">Documentos para Fins de Saúde e Segurança</div>
-                    <div class="checkbox-grid">
-                        <label><input type="checkbox" name="documents" value="Carteira Nacional de Saúde (SUS)"> Carteira Nacional de Saúde (SUS)</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Tétano"> Carteira de Vacinação contendo: Tétano</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Tríplice Viral"> Carteira de Vacinação contendo: Tríplice Viral</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Febre Amarela"> Carteira de Vacinação contendo: Febre Amarela</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Gripe"> Carteira de Vacinação contendo: Gripe</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: Hepatite B"> Carteira de Vacinação contendo: Hepatite B</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação contendo: COVID-19"> Carteira de Vacinação contendo: COVID-19</label>
-                    </div>
-                </div>
-
-                <!-- Military Service Documents -->
-                <div class="form-section">
-                    <div class="form-section-title">Documentos Militares (Obrigatório para homens até 45 anos)</div>
-                    <div class="checkbox-grid">
-                        <label><input type="checkbox" name="documents" value="Certificado de Reservista"> Certificado de Reservista</label>
-                    </div>
-                </div>
-
-                <!-- Dependent Documents -->
-                <div class="form-section">
-                    <div class="form-section-title">Documentos para Dependentes (se houver)</div>
-                    <div class="checkbox-grid">
-                        <label><input type="checkbox" name="documents" value="Certidão de Nascimento dos filhos"> Certidão de Nascimento dos filhos</label>
-                        <label><input type="checkbox" name="documents" value="Carteira de Vacinação atualizada dos filhos até 6 anos"> Carteira de Vacinação atualizada dos filhos até 6 anos</label>
-                        <label><input type="checkbox" name="documents" value="CPF dos dependentes (caso vá solicitar salário-família)"> CPF dos dependentes (caso vá solicitar salário-família)</label>
-                    </div>
-                </div>
-
-                <!-- Footer Message -->
-                <div class="form-section">
-                    <div class="form-section-title">⚠️ Atenção</div>
-                    <div style="background-color: var(--bg-color); padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.6;">
-                        Todas as cópias devem estar legíveis, sem rasuras.<br>
-                        Preferencialmente enviar em formato A4 (PDF).<br>
-                        Documentos ilegíveis poderão ser recusados, causando atraso no processo de admissão.
-                    </div>
-                </div>
-            </form>
-        </section>
-
-        <!-- Data Management Section -->
-        <section id="data-management" class="section">
-            <div class="section-header">
-                <h2>Gestão de Dados</h2>
-                <p>Realize backup, restauração e exportação dos dados</p>
-            </div>
-
-            <div class="management-grid">
-                <div class="card">
-                    <div class="card-icon">
-                        <i class="fas fa-download"></i>
-                    </div>
-                    <h3>Backup Completo</h3>
-                    <p>Exportar todos os dados para arquivo JSON</p>
-                    <button class="btn btn-primary" id="backup-data">
-                        <i class="fas fa-download"></i> Fazer Backup
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon">
-                        <i class="fas fa-upload"></i>
-                    </div>
-                    <h3>Restaurar Dados</h3>
-                    <p>Importar dados a partir de arquivo JSON</p>
-                    <input type="file" id="restore-file" accept=".json" style="display: none;">
-                    <button class="btn btn-secondary" id="restore-data">
-                        <i class="fas fa-upload"></i> Restaurar
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon">
-                        <i class="fas fa-file-csv"></i>
-                    </div>
-                    <h3>Exportar Relatório</h3>
-                    <p>Gerar relatório CSV com status dos documentos</p>
-                    <button class="btn btn-primary" id="export-csv">
-                        <i class="fas fa-file-csv"></i> Exportar CSV
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon warning">
-                        <i class="fas fa-trash"></i>
-                    </div>
-                    <h3>Reset Total</h3>
-                    <p>Limpar todos os dados do LocalStorage</p>
-                    <button class="btn btn-danger" id="reset-data">
-                        <i class="fas fa-trash"></i> Resetar Dados
-                    </button>
-                </div>
-            </div>
-
-            <!-- Communication Tools -->
-            <div class="section-header">
-                <h2>Comunicação</h2>
-                <p>Gere mensagens para contato com candidatos</p>
-            </div>
-
-            <div class="communication-grid">
-                <div class="card">
-                    <h3>Lista de Pendências</h3>
-                    <div class="pending-list" id="pending-list">
-                        <!-- Pending items will be inserted here -->
-                    </div>
-                    <button class="btn btn-secondary" id="print-pending">
-                        <i class="fas fa-print"></i> Imprimir
-                    </button>
-                </div>
-
-                <div class="card">
-                    <h3>Mensagem para O RH Grupo</h3>
-                    <div class="message-preview" id="message-preview">
-                        <!-- Message will be generated here -->
-                    </div>
-                    <div class="message-actions">
-                        <button class="btn btn-primary" id="copy-message">
-                            <i class="fas fa-copy"></i> Copiar Mensagem
-                        </button>
-                        <button class="btn btn-success" id="whatsapp-message">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
-                        </button>
-                        <button class="btn btn-secondary" id="email-message">
-                            <i class="fas fa-envelope"></i> Email
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Contracts Section -->
-        <section id="contracts" class="section">
-            <div class="section-header">
-                <h2>Verificação de Contratos</h2>
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="app.showAddContractModal()">
-                        <i class="fas fa-plus"></i> Novo Contrato
-                    </button>
+            </header>
+            <!-- Navigation -->
+            <nav class="nav">
+                <button class="nav-btn active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </button>
+                <button class="nav-btn" data-section="form">
+                    <i class="fas fa-plus-circle"></i> Novo Cadastro
+                </button>
+                <button class="nav-btn" data-section="jovem-aprendiz">
+                    <i class="fas fa-user-graduate"></i> Jovem Aprendiz
+                </button>
+                <button class="nav-btn" data-section="contracts">
+                    <i class="fas fa-file-signature"></i> Contratos
+                </button>
+                <button class="nav-btn" data-section="first-contact">
+                    <i class="fas fa-comments"></i> 1º Contato
+                </button>
+                <button class="nav-btn" data-section="data-management">
+                    <i class="fas fa-database"></i> Gestão de Dados
+                </button>
+            </nav>
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="section-header">
+                    <h2>Controle de Documentos</h2>
                     <div class="search-container">
-                        <input type="text" id="contracts-search-input" placeholder="Buscar por nome...">
-                        <button class="btn btn-secondary" id="clear-contracts-search">
+                        <input type="text" id="search-input" placeholder="Buscar por nome, CPF ou cargo...">
+                        <button class="btn btn-primary" id="clear-search">
                             <i class="fas fa-times"></i> Limpar
                         </button>
                     </div>
                 </div>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Páginas</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="contracts-table">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
-                <div id="no-contracts-results" class="no-results" style="display: none;">
-                    <i class="fas fa-search"></i>
-                    <p>Nenhum contrato encontrado</p>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Documentos</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="candidates-table">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                    <div id="no-results" class="no-results" style="display: none;">
+                        <i class="fas fa-search"></i>
+                        <p>Nenhum candidato encontrado</p>
+                    </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- First Contact Section -->
-        <section id="first-contact" class="section">
-            <div class="section-header">
-                <h2>1º Contato</h2>
-                <p>Selecione a vaga para gerar mensagens de contato</p>
-            </div>
-
-            <div class="contact-grid">
-                <div class="contact-card">
-                    <button class="btn btn-primary contact-btn" onclick="app.showServenteModal()">
-                        <i class="fas fa-hammer"></i> SERVENTE - SEDUC
-                    </button>
-                </div>
-                <div class="contact-card">
-                    <button class="btn btn-secondary contact-btn disabled" disabled>
-                        <i class="fas fa-car"></i> MOTORISTA
-                    </button>
-                </div>
-                <div class="contact-card">
-                    <button class="btn btn-secondary contact-btn disabled" disabled>
-                        <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO I
-                    </button>
-                </div>
-                <div class="contact-card">
-                    <button class="btn btn-secondary contact-btn disabled" disabled>
-                        <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO II
-                    </button>
-                </div>
-                <div class="contact-card">
-                    <button class="btn btn-secondary contact-btn disabled" disabled>
-                        <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO III
-                    </button>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast"></div>
-
-    <!-- Servente Modal -->
-    <div id="servente-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2>Servente - SEDUC</h2>
-                <button class="modal-close" onclick="app.closeServenteModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="message-options">
-                    <div class="message-option message-option-left">
-                        <h4>MENSAGEM 1</h4>
-                        <p>Oferta de vaga com detalhes salariais e horário</p>
-                        <button class="btn btn-primary" onclick="app.copyServenteMessage1()">
-                            <i class="fas fa-copy"></i> Copiar Mensagem
+            </section>
+            <!-- Form Section -->
+            <section id="form" class="section">
+                <div class="section-header">
+                    <h2 id="form-title">Novo Cadastro</h2>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" id="cancel-form">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button class="btn btn-primary" id="save-form" form="candidate-form" type="submit">
+                            <i class="fas fa-save"></i> Salvar (Enter)
                         </button>
                     </div>
-                    <div class="message-option message-option-right">
-                        <h4>MENSAGEM 2</h4>
-                        <p>Caso você tenha interesse, peço que preencha o formulário que irei lhe enviar</p>
-                        <button class="btn btn-primary" onclick="app.copyServenteMessage2()">
-                            <i class="fas fa-copy"></i> Copiar Mensagem
+                </div>
+                <form id="candidate-form" class="form-container">
+                    <input type="hidden" id="candidate-id">
+        
+                    <!-- Basic Information Row -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="name">Nome Completo *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="gender">Gênero *</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Selecione...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-small">
+                            <label for="has-children">Possui Filhos?</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="has-children" name="hasChildren">
+                                    Sim
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Quantidade de Filhos -->
+                    <div id="children-count-field" class="form-row" style="display: none;">
+                        <div class="form-group flex-small">
+                            <label for="children-count">Quantos filhos?</label>
+                            <select id="children-count" name="childrenCount">
+                                <option value="0">Selecione...</option>
+                                <option value="1">1 filho</option>
+                                <option value="2">2 filhos</option>
+                                <option value="3">3 filhos</option>
+                                <option value="4">4 filhos</option>
+                                <option value="5">5 filhos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Documentos dos Filhos (Dinâmico) -->
+                    <div id="children-documents-field" style="display: none;">
+                        <div class="form-section-title">Documentos dos Filhos</div>
+                        <div id="children-documents-container">
+                            <!-- Documentos de cada filho serão inseridos aqui -->
+                        </div>
+                    </div>
+                    <!-- Required Documents -->
+                    <div class="form-section">
+                        <div class="form-section-title">Checklist de Documentos</div>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="documents" value="Entrevista Online"> Entrevista Online</label>
+                            <label><input type="checkbox" name="documents" value="Currículo"> Currículo</label>
+                            <label><input type="checkbox" name="documents" value="RG"> RG</label>
+                            <label><input type="checkbox" name="documents" value="CTPS Digital"> CTPS Digital</label>
+                            <label><input type="checkbox" name="documents" value="Comprovante de Situacao Cadastral CPF"> Comprovante de Situação Cadastral CPF </label>
+                            <label><input type="checkbox" name="documents" value="Certidão de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
+                            <label><input type="checkbox" name="documents" value="Histórico Escolar"> Comprovante de escolaridade</label>
+                            <label><input type="checkbox" name="documents" value="Comprovante de Residência"> Comprovante de Residência (De até 3 meses atrás)</label>
+                            <label><input type="checkbox" name="documents" value="Certificado de Alistamento"> Certificado de Alistamento</label>
+                            <label><input type="checkbox" name="documents" value="Carteira de Vacina"> Carteira de Vacina</label>
+                            <label><input type="checkbox" name="documents" value="Cartão do SUS"> Cartão do SUS</label>
+                            <label><input type="checkbox" name="documents" value="PIS ou NIS ou NIT"> PIS ou NIS ou NIT</label>
+                            <label><input type="checkbox" name="documents" value="Extrato Bancário"> Extrato Bancário (Banco do Brasil, Banpará ou Bradesco)</label>
+                            <label><input type="checkbox" name="documents" value="Quitação Eleitoral"> Quitação Eleitoral</label>
+                        </div>
+                    </div>
+                </form>
+            </section>
+            <!-- Jovem Aprendiz Section -->
+            <section id="jovem-aprendiz" class="section">
+                <div class="section-header">
+                    <h2>Jovem Aprendiz</h2>
+                    <div class="search-container">
+                        <input type="text" id="jovem-aprendiz-search-input" placeholder="Buscar por nome...">
+                        <button class="btn btn-secondary" id="clear-jovem-aprendiz-search">
+                            <i class="fas fa-times"></i> Limpar
                         </button>
                     </div>
-                    <div class="message-option message-option-full">
-                        <h4>MENSAGEM 4</h4>
-                        <p>Entrevista online e solicitação de documentos</p>
-                        <div class="checklist-actions">
-                            <button class="btn btn-primary" onclick="app.copyServenteImage()">
-                                <i class="fas fa-image"></i> Copiar Checklist
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Documentos</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jovem-aprendiz-table">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                    <div id="no-jovem-aprendiz-results" class="no-results" style="display: none;">
+                        <i class="fas fa-search"></i>
+                        <p>Nenhum jovem aprendiz encontrado</p>
+                    </div>
+                </div>
+                <div class="section-header" style="margin-top: var(--spacing-xl);">
+                    <h2>Cadastro de Jovem Aprendiz</h2>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" id="cancel-jovem-aprendiz-form">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button class="btn btn-primary" id="save-jovem-aprendiz-form" form="jovem-aprendiz-form" type="submit">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+                <form id="jovem-aprendiz-form" class="form-container">
+                    <input type="hidden" id="jovem-aprendiz-id">
+        
+                    <!-- Basic Information Row -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="jovem-aprendiz-name">Nome Completo *</label>
+                            <input type="text" id="jovem-aprendiz-name" name="name" required>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="jovem-aprendiz-gender">Gênero *</label>
+                            <select id="jovem-aprendiz-gender" name="gender" required>
+                                <option value="">Selecione...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-small">
+                            <label for="jovem-aprendiz-has-children">Possui Filhos?</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="jovem-aprendiz-has-children" name="hasChildren">
+                                    Sim
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Quantidade de Filhos -->
+                    <div id="jovem-aprendiz-children-count-field" class="form-row" style="display: none;">
+                        <div class="form-group flex-small">
+                            <label for="jovem-aprendiz-children-count">Quantos filhos?</label>
+                            <select id="jovem-aprendiz-children-count" name="childrenCount">
+                                <option value="0">Selecione...</option>
+                                <option value="1">1 filho</option>
+                                <option value="2">2 filhos</option>
+                                <option value="3">3 filhos</option>
+                                <option value="4">4 filhos</option>
+                                <option value="5">5 filhos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Documentos dos Filhos (Dinâmico) -->
+                    <div id="jovem-aprendiz-children-documents-field" style="display: none;">
+                        <div class="form-section-title">Documentos dos Filhos</div>
+                        <div id="jovem-aprendiz-children-documents-container">
+                            <!-- Documentos de cada filho serão inseridos aqui -->
+                        </div>
+                    </div>
+                    <!-- Required Documents -->
+                    <div class="form-section">
+                        <div class="form-section-title">Documentos Básicos</div>
+        
+                        <!-- Campo para escolaridade -->
+                        <div class="form-row">
+                            <div class="form-group flex-small">
+                                <label for="completed-high-school">Terminou o Ensino Médio?</label>
+                                <select id="completed-high-school" name="completedHighSchool">
+                                    <option value="">Selecione...</option>
+                                    <option value="nao">Não</option>
+                                    <option value="sim">Sim</option>
+                                </select>
+                            </div>
+                        </div>
+        
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="documents" value="Currículo atualizado"> Currículo atualizado</label>
+                            <label><input type="checkbox" name="documents" value="RG (Carteira de Identidade) – frente e verso"> RG (Carteira de Identidade) – frente e verso</label>
+                            <label><input type="checkbox" name="documents" value="Comprovante de Situação Cadastral do CPF"> Comprovante de Situação Cadastral do CPF</label>
+                            <label><input type="checkbox" name="documents" value="Certidão de Quitação Eleitoral"> Certidão de Quitação Eleitoral</label>
+                            <label><input type="checkbox" name="documents" value="Certidão de Nascimento ou Casamento"> Certidão de Nascimento ou Casamento</label>
+                            <label><input type="checkbox" name="documents" value="Carteira de Trabalho Digital (todos os dados)"> Carteira de Trabalho Digital (todos os dados)</label>
+                            <label><input type="checkbox" name="documents" value="Comprovante de Endereço atualizado e legível"> Comprovante de Endereço atualizado e legível</label>
+                            <label><input type="checkbox" name="documents" value="PIS, NIT OU NIS"> PIS, NIT OU NIS</label>
+                            <label><input type="checkbox" name="documents" value="Extrato bancário (Banco do Brasil, Banpará ou Bradesco)"> Extrato bancário (Banco do Brasil, Banpará ou Bradesco)</label>
+                            <label><input type="checkbox" name="documents" value="Carteira Nacional do SUS"> Carteira Nacional do SUS</label>
+                            <label><input type="checkbox" name="documents" value="Carteira de Vacinação"> Carteira de Vacinação</label>
+        
+                            <!-- Documentos educacionais (agora dentro de Documentos Básicos) -->
+                            <label id="declaracao-escolar-label">
+                                <input type="checkbox" name="documents" value="Declaração Escolar (se estiver cursando o Ensino Médio)">
+                                Declaração Escolar (se estiver cursando o Ensino Médio)
+                            </label>
+                            <label id="certificado-conclusao-label">
+                                <input type="checkbox" name="documents" value="Certificado de Conclusão do Ensino Médio (frente e verso)">
+                                Certificado de Conclusão do Ensino Médio (frente e verso)
+                            </label>
+                            <label id="atestado-conclusao-label">
+                                <input type="checkbox" name="documents" value="Atestado de Conclusão">
+                                Atestado de Conclusão
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Military Service Documents -->
+                    <div class="form-section">
+                        <div class="form-section-title">Documentos Militares (Obrigatório para homens até 45 anos)</div>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="documents" value="Certificado de Reservista"> Certificado de Reservista</label>
+                        </div>
+                    </div>
+                    <!-- Dependent Documents -->
+                    <div class="form-section">
+                        <div class="form-section-title">Documentos para Dependentes (se houver)</div>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="documents" value="Certidão de Nascimento dos filhos"> Certidão de Nascimento dos filhos</label>
+                            <label><input type="checkbox" name="documents" value="Carteira de Vacinação atualizada dos filhos até 6 anos"> Carteira de Vacinação atualizada dos filhos até 6 anos</label>
+                            <label><input type="checkbox" name="documents" value="CPF dos dependentes (caso vá solicitar salário-família)"> CPF dos dependentes (caso vá solicitar salário-família)</label>
+                        </div>
+                    </div>
+                    <!-- Footer Message -->
+                    <div class="form-section">
+                        <div class="form-section-title">⚠️ Atenção</div>
+                        <div style="background-color: var(--bg-color); padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.6;">
+                            Todas as cópias devem estar legíveis, sem rasuras.<br>
+                            Preferencialmente enviar em formato A4 (PDF).<br>
+                            Documentos ilegíveis poderão ser recusados, causando atraso no processo de admissão.
+                        </div>
+                    </div>
+                </form>
+            </section>
+            <!-- Data Management Section -->
+            <section id="data-management" class="section">
+                <div class="section-header">
+                    <h2>Gestão de Dados</h2>
+                    <p>Realize backup, restauração e exportação dos dados</p>
+                </div>
+                <div class="management-grid">
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <h3>Backup Completo</h3>
+                        <p>Exportar todos os dados para arquivo JSON</p>
+                        <button class="btn btn-primary" id="backup-data">
+                            <i class="fas fa-download"></i> Fazer Backup
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3>Restaurar Dados</h3>
+                        <p>Importar dados a partir de arquivo JSON</p>
+                        <input type="file" id="restore-file" accept=".json" style="display: none;">
+                        <button class="btn btn-secondary" id="restore-data">
+                            <i class="fas fa-upload"></i> Restaurar
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-file-csv"></i>
+                        </div>
+                        <h3>Exportar Relatório</h3>
+                        <p>Gerar relatório CSV com status dos documentos</p>
+                        <button class="btn btn-primary" id="export-csv">
+                            <i class="fas fa-file-csv"></i> Exportar CSV
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon warning">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <h3>Reset Total</h3>
+                        <p>Limpar todos os dados do LocalStorage</p>
+                        <button class="btn btn-danger" id="reset-data">
+                            <i class="fas fa-trash"></i> Resetar Dados
+                        </button>
+                    </div>
+                </div>
+                <!-- Communication Tools -->
+                <div class="section-header">
+                    <h2>Comunicação</h2>
+                    <p>Gere mensagens para contato com candidatos</p>
+                </div>
+                <div class="communication-grid">
+                    <div class="card">
+                        <h3>Lista de Pendências</h3>
+                        <div class="pending-list" id="pending-list">
+                            <!-- Pending items will be inserted here -->
+                        </div>
+                        <button class="btn btn-secondary" id="print-pending">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                    <div class="card">
+                        <h3>Mensagem para O RH Grupo</h3>
+                        <div class="message-preview" id="message-preview">
+                            <!-- Message will be generated here -->
+                        </div>
+                        <div class="message-actions">
+                            <button class="btn btn-primary" id="copy-message">
+                                <i class="fas fa-copy"></i> Copiar Mensagem
                             </button>
-                            <button class="btn btn-primary" onclick="app.copyServenteMessage4()">
+                            <button class="btn btn-success" id="whatsapp-message">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+                            <button class="btn btn-secondary" id="email-message">
+                                <i class="fas fa-envelope"></i> Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Contracts Section -->
+            <section id="contracts" class="section">
+                <div class="section-header">
+                    <h2>Verificação de Contratos</h2>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="app.showAddContractModal()">
+                            <i class="fas fa-plus"></i> Novo Contrato
+                        </button>
+                        <div class="search-container">
+                            <input type="text" id="contracts-search-input" placeholder="Buscar por nome...">
+                            <button class="btn btn-secondary" id="clear-contracts-search">
+                                <i class="fas fa-times"></i> Limpar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Páginas</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contracts-table">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                    <div id="no-contracts-results" class="no-results" style="display: none;">
+                        <i class="fas fa-search"></i>
+                        <p>Nenhum contrato encontrado</p>
+                    </div>
+                </div>
+            </section>
+            <!-- First Contact Section -->
+            <section id="first-contact" class="section">
+                <div class="section-header">
+                    <h2>1º Contato</h2>
+                    <p>Selecione a vaga para gerar mensagens de contato</p>
+                </div>
+                <div class="contact-grid">
+                    <div class="contact-card">
+                        <button class="btn btn-primary contact-btn" onclick="app.showServenteModal()">
+                            <i class="fas fa-hammer"></i> SERVENTE - SEDUC
+                        </button>
+                    </div>
+                    <div class="contact-card">
+                        <button class="btn btn-secondary contact-btn disabled" disabled>
+                            <i class="fas fa-car"></i> MOTORISTA
+                        </button>
+                    </div>
+                    <div class="contact-card">
+                        <button class="btn btn-secondary contact-btn disabled" disabled>
+                            <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO I
+                        </button>
+                    </div>
+                    <div class="contact-card">
+                        <button class="btn btn-secondary contact-btn disabled" disabled>
+                            <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO II
+                        </button>
+                    </div>
+                    <div class="contact-card">
+                        <button class="btn btn-secondary contact-btn disabled" disabled>
+                            <i class="fas fa-briefcase"></i> AUXILIAR ADMINISTRATIVO III
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+        <!-- Servente Modal -->
+        <div id="servente-modal" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>Servente - SEDUC</h2>
+                    <button class="modal-close" onclick="app.closeServenteModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="message-options">
+                        <div class="message-option message-option-left">
+                            <h4>MENSAGEM 1</h4>
+                            <p>Oferta de vaga com detalhes salariais e horário</p>
+                            <button class="btn btn-primary" onclick="app.copyServenteMessage1()">
+                                <i class="fas fa-copy"></i> Copiar Mensagem
+                            </button>
+                        </div>
+                        <div class="message-option message-option-right">
+                            <h4>MENSAGEM 2</h4>
+                            <p>Caso você tenha interesse, peço que preencha o formulário que irei lhe enviar</p>
+                            <button class="btn btn-primary" onclick="app.copyServenteMessage2()">
+                                <i class="fas fa-copy"></i> Copiar Mensagem
+                            </button>
+                        </div>
+                        <div class="message-option message-option-full">
+                            <h4>MENSAGEM 4</h4>
+                            <p>Entrevista online e solicitação de documentos</p>
+                            <div class="checklist-actions">
+                                <button class="btn btn-primary" onclick="app.copyServenteImage()">
+                                    <i class="fas fa-image"></i> Copiar Checklist
+                                </button>
+                                <button class="btn btn-primary" onclick="app.copyServenteMessage4()">
+                                    <i class="fas fa-copy"></i> Copiar Mensagem
+                                </button>
+                            </div>
+                        </div>
+                        <div class="message-option message-option-bottom">
+                            <h4>MENSAGEM 5</h4>
+                            <p>Lembrete sobre documentação necessária</p>
+                            <button class="btn btn-primary" onclick="app.copyServenteMessage5()">
                                 <i class="fas fa-copy"></i> Copiar Mensagem
                             </button>
                         </div>
                     </div>
-                    <div class="message-option message-option-bottom">
-                        <h4>MENSAGEM 5</h4>
-                        <p>Lembrete sobre documentação necessária</p>
-                        <button class="btn btn-primary" onclick="app.copyServenteMessage5()">
-                            <i class="fas fa-copy"></i> Copiar Mensagem
-                        </button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="app.closeServenteModal()">Fechar</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="app.closeServenteModal()">Fechar</button>
+        </div>
+        <!-- Print Modal -->
+        <div id="print-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Lista de Pendências de Documentos</h2>
+                    <button class="modal-close" id="close-print-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="print-modal-body">
+                    <!-- Content will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="cancel-print-modal">Fechar</button>
+                    <button class="btn btn-primary" id="confirm-print-modal">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Print Modal -->
-    <div id="print-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Lista de Pendências de Documentos</h2>
-                <button class="modal-close" id="close-print-modal">&times;</button>
-            </div>
-            <div class="modal-body" id="print-modal-body">
-                <!-- Content will be inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-print-modal">Fechar</button>
-                <button class="btn btn-primary" id="confirm-print-modal">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
-            </div>
-        </div>
+    <div id="site-novo">
+        <h1>Acesse o nosso site atualizado</h1>
+        <a href="https://sistema-vd2026.web.app/">SISTEMA VD</a>
     </div>
-
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>

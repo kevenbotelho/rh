@@ -4,8 +4,11 @@
 class DocumentVerificationSystem {
     constructor() {
         this.candidates = [];
+        this.jovemAprendiz = [];
         this.contracts = [];
         this.currentEditId = null;
+        this.currentEditJovemAprendizId = null;
+        this.currentEditContractId = null;
         this.currentTheme = localStorage.getItem('theme') || 'light';
         
         // Páginas obrigatórias do contrato
@@ -28,6 +31,7 @@ class DocumentVerificationSystem {
         this.initializeEventListeners();
         this.loadTheme();
         this.loadData();
+        this.loadJovemAprendizData();
         this.loadContractsData();
         this.render();
     }
@@ -97,7 +101,7 @@ class DocumentVerificationSystem {
         document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
     }
 
-    // ==================== GESTÃO DE DADOS ====================
+    // ==================== GESTÃO DE DADOS - CANDIDATOS ====================
     
     loadData() {
         const savedData = localStorage.getItem('rh_candidates');
@@ -117,6 +121,124 @@ class DocumentVerificationSystem {
     saveData() {
         localStorage.setItem('rh_candidates', JSON.stringify(this.candidates));
         this.showToast('Dados salvos com sucesso!', 'success');
+    }
+
+    // ==================== GESTÃO DE DADOS - JOVEM APRENDIZ ====================
+    
+    loadJovemAprendizData() {
+        const savedData = localStorage.getItem('rh_jovem_aprendiz');
+        if (savedData) {
+            try {
+                this.jovemAprendiz = JSON.parse(savedData);
+            } catch (e) {
+                console.error('Erro ao carregar dados de Jovem Aprendiz:', e);
+                this.jovemAprendiz = [];
+            }
+        } else {
+            this.jovemAprendiz = [];
+        }
+        this.renderJovemAprendizTable();
+    }
+
+    saveJovemAprendizData() {
+        localStorage.setItem('rh_jovem_aprendiz', JSON.stringify(this.jovemAprendiz));
+        this.showToast('Dados de Jovem Aprendiz salvos com sucesso!', 'success');
+    }
+
+    calculateJovemAprendizStatus(candidate) {
+        const requiredDocs = this.getJovemAprendizRequiredDocuments(candidate);
+        const deliveredDocs = candidate.documents.length;
+        const totalRequired = requiredDocs.length;
+        
+        const percentage = totalRequired > 0 ? Math.round((deliveredDocs / totalRequired) * 100) : 0;
+        
+        // Lógica inteligente de exclusão condicional para documentos educacionais
+        const missing = this.getJovemAprendizMissingDocuments(candidate, requiredDocs);
+        
+        return {
+            percentage,
+            isComplete: percentage === 100,
+            delivered: deliveredDocs,
+            total: totalRequired,
+            missing: missing
+        };
+    }
+
+    getJovemAprendizMissingDocuments(candidate, requiredDocs) {
+        const deliveredDocs = candidate.documents;
+        const completedHighSchool = candidate.completedHighSchool;
+        
+        // Filtra documentos que faltam, aplicando lógica de exclusão condicional
+        const missing = requiredDocs.filter(doc => !deliveredDocs.includes(doc));
+        
+        // Lógica de exclusão condicional para documentos educacionais
+        if (completedHighSchool === 'sim') {
+            // Se terminou o Ensino Médio, aplica lógica de exclusão entre Certificado e Atestado
+            const hasCertificado = deliveredDocs.includes('Certificado de Conclusão do Ensino Médio (frente e verso)');
+            const hasAtestado = deliveredDocs.includes('Atestado de Conclusão');
+            
+            if (hasCertificado || hasAtestado) {
+                // Se tem Certificado OU Atestado, remove o outro da lista de pendências
+                return missing.filter(doc => 
+                    doc !== 'Certificado de Conclusão do Ensino Médio (frente e verso)' && 
+                    doc !== 'Atestado de Conclusão'
+                );
+            }
+        } else if (completedHighSchool === 'nao') {
+            // Se não terminou o Ensino Médio, aplica lógica de exclusão
+            const hasDeclaracao = deliveredDocs.includes('Declaração Escolar (se estiver cursando o Ensino Médio)');
+            
+            if (hasDeclaracao) {
+                // Se tem Declaração Escolar, remove Certificado e Atestado da lista de pendências
+                return missing.filter(doc => 
+                    doc !== 'Certificado de Conclusão do Ensino Médio (frente e verso)' && 
+                    doc !== 'Atestado de Conclusão'
+                );
+            }
+        }
+        
+        return missing;
+    }
+
+    getJovemAprendizRequiredDocuments(candidate) {
+        let docs = [
+            'Entrevista Online',
+            'Currículo',
+            'RG',
+            'CTPS Digital',
+            'Comprovante de Situacao Cadastral CPF',
+            'Certidão de Nascimento ou Casamento',
+            'Comprovante de Residência',
+            'Carteira de Vacinação',
+            'Carteira Nacional do SUS',
+            'PIS ou NIS ou NIT',
+            'Extrato Bancário',
+            'Quitação Eleitoral'
+        ];
+
+        // Certificado de Alistamento é obrigatório apenas para homens
+        if (candidate.gender === 'Masculino') {
+            docs.push('Certificado de Alistamento');
+        }
+
+        // Documentos educacionais específicos para Jovem Aprendiz
+        if (candidate.completedHighSchool === 'nao') {
+            docs.push('Declaração Escolar (se estiver cursando o Ensino Médio)');
+        } else if (candidate.completedHighSchool === 'sim') {
+            docs.push('Certificado de Conclusão do Ensino Médio (frente e verso)');
+            docs.push('Atestado de Conclusão');
+        }
+
+        // Documentos condicionais - documentos específicos por filho
+        if (candidate.hasChildren && candidate.childrenCount) {
+            for (let i = 1; i <= candidate.childrenCount; i++) {
+                docs.push(`CPF do Filho ${i}`);
+                docs.push(`Certidão de Nascimento do Filho ${i}`);
+                docs.push(`Carteira de Vacinação do Filho ${i}`);
+            }
+        }
+
+        return docs;
     }
 
     generateId() {
@@ -246,8 +368,6 @@ class DocumentVerificationSystem {
     // ==================== CONTRATOS - AÇÕES ====================
     
     showAddContractModal() {
-        const modalHtml = this.generateContractModal();
-        
         // Remove modal existente se houver
         const existingModal = document.getElementById('contract-modal');
         if (existingModal) {
@@ -295,9 +415,6 @@ class DocumentVerificationSystem {
         modalDiv.style.display = 'flex';
     }
 
-    generateContractModal() {
-        return '';
-    }
 
     closeContractModal() {
         const modal = document.getElementById('contract-modal');
@@ -454,7 +571,6 @@ class DocumentVerificationSystem {
             'CTPS Digital',
             'Comprovante de Situacao Cadastral CPF',
             'Certidão de Nascimento ou Casamento',
-            'Histórico Escolar',
             'Comprovante de Residência',
             'Carteira de Vacina',
             'Cartão do SUS',
@@ -616,13 +732,19 @@ class DocumentVerificationSystem {
     switchSection(sectionName) {
         // Atualiza navegação
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.nav-btn[data-section="${sectionName}"]`).classList.add('active');
+        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionName}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
         
         // Mostra/esconde seções
         document.querySelectorAll('.section').forEach(section => {
             section.classList.remove('active');
         });
-        document.getElementById(sectionName).classList.add('active');
+        const targetSection = document.getElementById(sectionName);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
 
         // Se for para o formulário, limpa ou carrega dados
         if (sectionName === 'form') {
@@ -636,6 +758,16 @@ class DocumentVerificationSystem {
         // Atualiza a interface quando muda para o dashboard
         if (sectionName === 'dashboard') {
             this.render();
+        }
+        
+        // Atualiza a interface quando muda para a seção de contratos
+        if (sectionName === 'contracts') {
+            this.renderContractsTable();
+        }
+        
+        // Atualiza a interface quando muda para a seção de jovem aprendiz
+        if (sectionName === 'jovem-aprendiz') {
+            this.renderJovemAprendizTable();
         }
     }
 
@@ -696,9 +828,8 @@ class DocumentVerificationSystem {
         document.getElementById('form-title').textContent = 'Novo Cadastro';
         document.getElementById('candidate-form').reset();
         document.getElementById('candidate-id').value = '';
-        document.getElementById('children-docs-field').style.display = 'none';
-        document.getElementById('children-count-field').style.display = 'none';
         document.getElementById('children-documents-field').style.display = 'none';
+        document.getElementById('children-count-field').style.display = 'none';
         document.getElementById('children-documents-container').innerHTML = '';
         document.getElementById('children-count').value = '0';
         document.querySelectorAll('input[name="documents"]').forEach(cb => cb.checked = false);
@@ -937,10 +1068,10 @@ class DocumentVerificationSystem {
     renderJovemAprendizTable(searchTerm = '') {
         const tbody = document.getElementById('jovem-aprendiz-table');
         const noResults = document.getElementById('no-jovem-aprendiz-results');
-        let filteredCandidates = this.candidates;
+        let filteredCandidates = this.jovemAprendiz;
 
         if (searchTerm) {
-            filteredCandidates = this.candidates.filter(candidate => 
+            filteredCandidates = this.jovemAprendiz.filter(candidate => 
                 candidate.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
@@ -963,7 +1094,7 @@ class DocumentVerificationSystem {
 
         noResults.style.display = 'none';
         tbody.innerHTML = filteredCandidates.map(candidate => {
-            const status = this.calculateStatus(candidate);
+            const status = this.calculateJovemAprendizStatus(candidate);
             const statusClass = status.isComplete ? 'status-complete' : 'status-incomplete';
             const statusText = status.isComplete ? 'COMPLETO' : 'INCOMPLETO';
             
@@ -1124,7 +1255,13 @@ class DocumentVerificationSystem {
         }
 
         // Validação de documentos educacionais baseado na escolaridade
-        const completedHighSchool = document.getElementById('completed-high-school').value;
+        const escolaridadeSelect = document.getElementById('completed-high-school');
+        if (!escolaridadeSelect) {
+            this.showToast('Erro: Campo de escolaridade não encontrado', 'error');
+            return false;
+        }
+        
+        const completedHighSchool = escolaridadeSelect.value;
         
         if (completedHighSchool === '') {
             this.showValidationError('completed-high-school', 'Escolaridade é obrigatória');
@@ -1132,19 +1269,22 @@ class DocumentVerificationSystem {
             isValid = false;
         } else if (completedHighSchool === 'nao') {
             // Se NÃO terminou o Ensino Médio, obrigatório: Declaração Escolar
-            const hasDeclaracaoEscolar = document.querySelector('input[name="documents"][value="Declaração Escolar (se estiver cursando o Ensino Médio)"]').checked;
+            const hasDeclaracaoEscolar = document.querySelector('input[name="documents"][value="Declaração Escolar (se estiver cursando o Ensino Médio)"]');
             
-            if (!hasDeclaracaoEscolar) {
+            if (hasDeclaracaoEscolar && !hasDeclaracaoEscolar.checked) {
                 this.showValidationError('declaracao-escolar-label', 'Declaração Escolar é obrigatória para quem não terminou o Ensino Médio');
                 if (!errorMessage) errorMessage = 'Para quem não terminou o Ensino Médio, é obrigatório apresentar a Declaração Escolar!';
                 isValid = false;
             }
         } else if (completedHighSchool === 'sim') {
             // Se terminou o Ensino Médio, obrigatório: Certificado de Conclusão OU Atestado de Conclusão
-            const hasCertificadoConclusao = document.querySelector('input[name="documents"][value="Certificado de Conclusão do Ensino Médio (frente e verso)"]').checked;
-            const hasAtestadoConclusao = document.querySelector('input[name="documents"][value="Atestado de Conclusão"]').checked;
+            const hasCertificadoConclusao = document.querySelector('input[name="documents"][value="Certificado de Conclusão do Ensino Médio (frente e verso)"]');
+            const hasAtestadoConclusao = document.querySelector('input[name="documents"][value="Atestado de Conclusão"]');
             
-            if (!hasCertificadoConclusao && !hasAtestadoConclusao) {
+            const certificadoChecked = hasCertificadoConclusao ? hasCertificadoConclusao.checked : false;
+            const atestadoChecked = hasAtestadoConclusao ? hasAtestadoConclusao.checked : false;
+            
+            if (!certificadoChecked && !atestadoChecked) {
                 this.showValidationError('certificado-conclusao-label', 'Certificado de Conclusão do Ensino Médio (frente e verso) ou Atestado de Conclusão é obrigatório para quem terminou o Ensino Médio');
                 if (!errorMessage) errorMessage = 'Para quem terminou o Ensino Médio, é obrigatório apresentar o Certificado de Conclusão do Ensino Médio (frente e verso) ou Atestado de Conclusão!';
                 isValid = false;
@@ -1165,8 +1305,8 @@ class DocumentVerificationSystem {
             id: this.generateId()
         };
         
-        this.candidates.push(newCandidate);
-        this.saveData();
+        this.jovemAprendiz.push(newCandidate);
+        this.saveJovemAprendizData();
         this.showToast('✅ Jovem Aprendiz cadastrado com sucesso!', 'success');
         
         // Reseta o formulário após o cadastro bem-sucedido
@@ -1174,7 +1314,7 @@ class DocumentVerificationSystem {
     }
 
     editJovemAprendiz(id) {
-        const candidate = this.candidates.find(c => c.id === id);
+        const candidate = this.jovemAprendiz.find(c => c.id === id);
         if (!candidate) return;
 
         // Preenche o formulário de jovem aprendiz
@@ -1230,8 +1370,8 @@ class DocumentVerificationSystem {
 
     deleteJovemAprendiz(id) {
         if (confirm('Tem certeza que deseja excluir este jovem aprendiz?')) {
-            this.candidates = this.candidates.filter(c => c.id !== id);
-            this.saveData();
+            this.jovemAprendiz = this.jovemAprendiz.filter(c => c.id !== id);
+            this.saveJovemAprendizData();
             this.renderJovemAprendizTable();
             this.showToast('Jovem Aprendiz excluído com sucesso!', 'success');
         }
@@ -1779,7 +1919,20 @@ Sapato:`;
     }
 
     handleHighSchoolCompletionChange() {
-        const completedHighSchool = document.getElementById('completed-high-school').value;
+        // Verifica se estamos na seção de Jovem Aprendiz
+        const jovemAprendizSection = document.getElementById('jovem-aprendiz');
+        const isJovemAprendizSection = jovemAprendizSection && jovemAprendizSection.classList.contains('active');
+        
+        if (!isJovemAprendizSection) {
+            return; // Não faz nada se não estiver na seção correta
+        }
+        
+        const escolaridadeSelect = document.getElementById('completed-high-school');
+        if (!escolaridadeSelect) {
+            return; // Não faz nada se o elemento não existir
+        }
+        
+        const completedHighSchool = escolaridadeSelect.value;
         
         // Atualiza a interface baseado na escolha
         if (completedHighSchool === 'nao') {
